@@ -41,7 +41,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 | Aby każda odpowiedź od podmiotu na wiadomość grupową pojawiała się jako osobny, indywidualny wątek. | Móc prowadzić dalszą korespondencję z każdym podmiotem z osobna. |
 | Aby każda konwersacja (wątek) była przypisana do grupy. | Zapewnić, że tylko uprawnieni użytkownicy merytoryczni (z tej samej grupy) będą mieli do niej dostęp. |
 | (Opcjonalnie) Mieć możliwość tworzenia własnych, prywatnych list adresatów. | Ułatwić sobie wysyłanie wiadomości do często wybieranego podzbioru podmiotów. |
-
+| Mieć możliwość wysłania wiadomości do jednej osoby | Efektywnie komunikować sie z podmiotem |
 ---
 
 ### ⚙️ Wymagania Ogólnosystemowe
