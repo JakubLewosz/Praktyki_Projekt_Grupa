@@ -2,8 +2,8 @@
 * [Rola 1: Użytkownik Podmiotu](#rola-1)
 * [Rola 2: Użytkownik UKNF (Administrator)](#rola-2)
 * [Rola 3: Użytkownik UKNF (Merytoryczny)](#rola-3)
-* [Wymagania Ogólnosystemowe (Epiki)](#opis)
-
+* [Wymagania Ogólnosystemowe](#opis)
+---
   <a id="rola-1"></a>
 ### 👤 Rola 1: Użytkownik Podmiotu
 Osoba reprezentująca instytucję nadzorowaną (np. bank).
