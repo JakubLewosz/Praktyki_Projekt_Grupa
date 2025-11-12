@@ -1,4 +1,4 @@
-### 🧾 Spis Treści
+## 🧾 Spis Treści
 * [Rola 1: Użytkownik Podmiotu](#rola-1-uzytkownik-podmiotu)
 * [Rola 2: Użytkownik UKNF (Administrator)](#rola-2-uzytkownik-uknf-administrator)
 * [Rola 3: Użytkownik UKNF (Merytoryczny)](#rola-3-uzytkownik-uknf-merytoryczny)
