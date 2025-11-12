@@ -1,8 +1,10 @@
 ## 🧾 Spis Treści
-* [Rola 1: Użytkownik Podmiotu](#rola-1-uzytkownik-podmiotu)
-* [Rola 2: Użytkownik UKNF (Administrator)](#rola-2-uzytkownik-uknf-administrator)
-* [Rola 3: Użytkownik UKNF (Merytoryczny)](#rola-3-uzytkownik-uknf-merytoryczny)
-* [Wymagania Ogólnosystemowe (Epiki)](#wymagania-ogolnosystemowe-epiki)
+* [Rola 1: Użytkownik Podmiotu](#rola-1)
+* [Rola 2: Użytkownik UKNF (Administrator)](#rola-2)
+* [Rola 3: Użytkownik UKNF (Merytoryczny)](#rola-3)
+* [Wymagania Ogólnosystemowe (Epiki)](#opis)
+
+  <a id="rola-1"></a>
 ### 👤 Rola 1: Użytkownik Podmiotu
 Osoba reprezentująca instytucję nadzorowaną (np. bank).
 
@@ -16,7 +18,7 @@ Osoba reprezentująca instytucję nadzorowaną (np. bank).
 | Móc odpowiedzieć na wiadomość grupową. | Moja odpowiedź trafi do indywidualnego wątku, widocznego tylko dla mnie i UKNF. |
 
 ---
-
+<a id="rola-2"></a>
 ### 👑 Rola 2: Użytkownik UKNF (Administrator)
 Pracownik UKNF odpowiedzialny za zarządzanie systemem, bez dostępu do treści wiadomości.
 
@@ -32,7 +34,7 @@ Pracownik UKNF odpowiedzialny za zarządzanie systemem, bez dostępu do treści 
 | **Nie mieć dostępu** do przeglądania treści wiadomości. | Zachować poufność komunikacji zgodnie z moją rolą. |
 
 ---
-
+<a id="rola-3"></a>
 ### 🕵️ Rola 3: Użytkownik UKNF (Merytoryczny)
 Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmiotów.
 
@@ -48,7 +50,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 | (Opcjonalnie) Mieć możliwość tworzenia własnych, prywatnych list adresatów. | Ułatwić sobie wysyłanie wiadomości do często wybieranego podzbioru podmiotów. |
 | Mieć możliwość wysłania wiadomości do jednej osoby | Efektywnie komunikować sie z podmiotem |
 ---
-
+<a id="opis"></a>
 ### ⚙️ Wymagania Ogólnosystemowe
 To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
 
