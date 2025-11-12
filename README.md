@@ -44,7 +44,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 
 ---
 
-### ⚙️ Wymagania Ogólnosystemowe (Epiki)
+### ⚙️ Wymagania Ogólnosystemowe
 To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
 
 * **System Uwierzytelniania:** Pełna obsługa logowania, ról i uprawnień.
