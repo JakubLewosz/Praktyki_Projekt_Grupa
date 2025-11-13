@@ -98,6 +98,7 @@
 | **Wiadomosc - Zalacznik** | **Wiele do Wielu** | Wiadomość może mieć wiele Załączników (tabela pośrednia `WiadomoscZalacznik`). |
 
 ---
+```mermaid
 erDiagram
     %% ENCJIE GLOWNE
     ApplicationUser ||--o{ Podmiot : "jest_powiazany_z_jednym"
@@ -154,3 +155,4 @@ erDiagram
     %% TABELE POSREDNIE (N:M)
     %% W Mermaid N:M (many-to-many) jest reprezentowane poprzez linie
     %% bez potrzeby jawnego definiowania tabel posrednich (GrupaPodmiot, GrupaApplicationUser, WiadomoscZalacznik)
+'''
