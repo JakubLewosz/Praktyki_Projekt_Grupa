@@ -51,4 +51,50 @@
 * `ApplicationUser` (Merytoryczny) <-> `Grupa`
 * `Wiadomosc` <-> `Zalacznik`
 
+* # 🗺️ Graficzny Schemat Bazy Danych (ERD)
+
+## Kluczowe Relacje Między Encjami
+
+* **ApplicationUser** (Użytkownicy) 
+    * Id (PK)
+    * Rola
+    * PodmiotId (FK)
+* **Podmiot** (Instytucje zewnętrzne)
+    * Id (PK)
+    * Nazwa
+    * IsActive
+* **Grupa** (Kategorie tematyczne)
+    * Id (PK)
+    * Nazwa
+* **Watek** (Główna konwersacja)
+    * Id (PK)
+    * Temat
+    * GrupaId (FK)
+* **Wiadomosc** (Posty w wątku)
+    * Id (PK)
+    * Tresc
+    * WatekId (FK)
+    * AutorId (FK)
+* **Zalacznik** (Metadane plików)
+    * Id (PK)
+    * SciezkaPliku
+
+---
+
+## 🔗 Wizualizacja Relacji
+
+
+
+### Opis Relacji (Krótkie Podsumowanie)
+
+| Relacja | Typ | Opis |
+| :--- | :--- | :--- |
+| **Podmiot - ApplicationUser** | **1 do 0/1** | Jeden Podmiot może być powiązany z wieloma Użytkownikami typu `Podmiot`. |
+| **Podmiot - Grupa** | **Wiele do Wielu** | Podmiot może należeć do wielu Grup (tabela pośrednia `GrupaPodmiot`). |
+| **ApplicationUser - Grupa** | **Wiele do Wielu** | Użytkownik Merytoryczny UKNF może być przypisany do wielu Grup (tabela pośrednia `GrupaApplicationUser`). |
+| **Watek - Grupa** | **1 do N** | Jeden Wątek jest zawsze przypisany do jednej Grupy. |
+| **Watek - Wiadomosc** | **1 do N** | Jeden Wątek zawiera wiele Wiadomości. |
+| **Wiadomosc - ApplicationUser**| **N do 1** | Wiadomość ma jednego Autora. |
+| **Wiadomosc - Zalacznik** | **Wiele do Wielu** | Wiadomość może mieć wiele Załączników (tabela pośrednia `WiadomoscZalacznik`). |
+
 ---
