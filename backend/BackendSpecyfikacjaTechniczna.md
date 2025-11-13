@@ -98,3 +98,59 @@
 | **Wiadomosc - Zalacznik** | **Wiele do Wielu** | Wiadomość może mieć wiele Załączników (tabela pośrednia `WiadomoscZalacznik`). |
 
 ---
+erDiagram
+    %% ENCJIE GLOWNE
+    ApplicationUser ||--o{ Podmiot : "jest_powiazany_z_jednym"
+    ApplicationUser ||--o{ Wiadomosc : "jest_autorem"
+    Podmiot ||--o{ Grupa : "N{posiada_przynaleznosc}M"
+    Grupa ||--o{ Watek : "1{jest_kategoria}N"
+    Watek ||--o{ Wiadomosc : "1{zawiera_posty}N"
+    Wiadomosc ||--o{ ApplicationUser : "N{autor}1"
+    Wiadomosc ||--o{ Zalacznik : "N{zawiera}M"
+    Grupa ||--o{ ApplicationUser : "N{ma_dostep_do}M"
+    
+    %% DEFINICJA TABEL (Mermaid ERD wymaga definicji pól)
+    ApplicationUser {
+        string Id PK "PK z AspNet Identity"
+        string UserName
+        Rola Rola
+        int PodmiotId FK "FK do Podmiot"
+        DateTime LockoutEnd
+    }
+    
+    Podmiot {
+        int Id PK
+        string Nazwa
+        bool IsActive
+    }
+
+    Grupa {
+        int Id PK
+        string Nazwa
+        bool IsActive
+    }
+
+    Watek {
+        int Id PK
+        string Temat
+        int GrupaId FK
+    }
+
+    Wiadomosc {
+        int Id PK
+        string Tresc
+        DateTime DataWyslania
+        int WatekId FK
+        string AutorId FK
+    }
+
+    Zalacznik {
+        int Id PK
+        string OryginalnaNazwa
+        string SciezkaPliku
+        string TypMIME
+    }
+
+    %% TABELE POSREDNIE (N:M)
+    %% W Mermaid N:M (many-to-many) jest reprezentowane poprzez linie
+    %% bez potrzeby jawnego definiowania tabel posrednich (GrupaPodmiot, GrupaApplicationUser, WiadomoscZalacznik)
