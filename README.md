@@ -40,7 +40,7 @@ Osoba reprezentująca instytucję nadzorowaną (np. bank).
 ---
 <a id="rola-3"></a>
 <details>
-  <summary>### 🕵️ Rola 3: Użytkownik UKNF (Merytoryczny)</summary>
+  <summary><h3> 🕵️ Rola 3: Użytkownik UKNF (Merytoryczny)</h3></summary>
 Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmiotów.
 
 | Wymaganie (Co chcę) | Cel (Po co) |
@@ -56,6 +56,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 | Mieć możliwość wysłania wiadomości do jednej osoby | Efektywnie komunikować sie z podmiotem |
 ---
 </details>
+---
 <a id="opis"></a>
 ### ⚙️ Wymagania Ogólnosystemowe
 To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
