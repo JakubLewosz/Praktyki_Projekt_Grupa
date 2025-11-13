@@ -20,8 +20,9 @@ Osoba reprezentująca instytucję nadzorowaną (np. bank).
 
 ---
 <a id="rola-2"></a>
-### 👑 Rola 2: Użytkownik UKNF (Administrator)
-Pracownik UKNF odpowiedzialny za zarządzanie systemem, bez dostępu do treści wiadomości.
+<details>
+  <summary>### 👑 Rola 2: Użytkownik UKNF (Administrator)</summary>
+  Pracownik UKNF odpowiedzialny za zarządzanie systemem, bez dostępu do treści wiadomości.
 
 | Wymaganie (Co chcę) | Cel (Po co) |
 | :--- | :--- |
@@ -34,9 +35,12 @@ Pracownik UKNF odpowiedzialny za zarządzanie systemem, bez dostępu do treści 
 | Mieć możliwość dodawania i usuwania podmiotów z grup. | Zarządzać przynależnością podmiotów do grup. |
 | **Nie mieć dostępu** do przeglądania treści wiadomości. | Zachować poufność komunikacji zgodnie z moją rolą. |
 
+</details>
+
 ---
 <a id="rola-3"></a>
-### 🕵️ Rola 3: Użytkownik UKNF (Merytoryczny)
+<details>
+  <summary>### 🕵️ Rola 3: Użytkownik UKNF (Merytoryczny)</summary>
 Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmiotów.
 
 | Wymaganie (Co chcę) | Cel (Po co) |
@@ -51,6 +55,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 | (Opcjonalnie) Mieć możliwość tworzenia własnych, prywatnych list adresatów. | Ułatwić sobie wysyłanie wiadomości do często wybieranego podzbioru podmiotów. |
 | Mieć możliwość wysłania wiadomości do jednej osoby | Efektywnie komunikować sie z podmiotem |
 ---
+</details>
 <a id="opis"></a>
 ### ⚙️ Wymagania Ogólnosystemowe
 To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
@@ -178,6 +183,6 @@ erDiagram
   
 </details>
 <details id="docfrontend">
-  <summary>Dokumentacja Backend</summary>
-  
+  <summary>Dokumentacja Frontend</summary>
+  W budowie 
 </details>
