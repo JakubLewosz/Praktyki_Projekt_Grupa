@@ -108,3 +108,14 @@ erDiagram
         string TypMIME
     }
 ```
+<details>
+  <summary>Kliknij, aby rozwinąć szczegóły (Nagłówek elementu)</summary>
+  
+  ## Ukryta Treść
+  
+  To jest cała zawartość, która zostanie początkowo ukryta. 
+  Pamiętaj, aby zachować **pusty wiersz** po tagu `<summary>`, aby Markdown poprawnie przetworzył formatowanie (nagłówki, listy, itp.) wewnątrz bloku `<details>`.
+  
+  - Element listy 1
+  - Element listy 2
+</details>
