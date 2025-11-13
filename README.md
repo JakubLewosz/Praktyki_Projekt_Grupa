@@ -56,7 +56,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 </details>
 <a id="opis"></a>
 <details>
-  <summary>⚙️ Wymagania Ogólnosystemowe</summary>
+  <summary><h3>⚙️ Wymagania Ogólnosystemowe</h3></summary>
   To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
 
 * **System Uwierzytelniania:** Pełna obsługa logowania, ról i uprawnień.
@@ -68,7 +68,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 
 </details>
 <details id="docbackend">
-  <summary>💻 Dokumentacja Backend</summary>
+  <summary><h3>💻 Dokumentacja Backend</h3></summary>
   
 # 📂 Struktura Projektu: Komunikator UKNF (Backend)
 
