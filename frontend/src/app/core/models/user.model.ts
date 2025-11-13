@@ -14,8 +14,9 @@ export interface LoginRequest {
 // TO JEST KLUCZOWE - bez tego TypeScript sypie błędami w auth.ts
 export interface AuthResponse {
   token: string;     // <--- Musi tu być, żebyś mógł zrobić response.token
+  expiration: string;
   username?: string; // Opcjonalne, jeśli backend zwraca
-  role?: UserRole;   // Opcjonalne
+  role?: string;   // Opcjonalne
 }
 
 export interface CreateUserRequest {
@@ -30,6 +31,20 @@ export interface User {
   id: string; 
   username: string;
   email: string;
-  role: UserRole;
+  role: string;
+  isActive: boolean;
+  powiazanie?: string;
+}
+
+export interface Podmiot {
+  id: number;
+  nazwa: string;
   isActive: boolean;
 }
+
+export interface Grupa {
+  id: number;
+  nazwa: string;
+  isActive: boolean;
+}
+

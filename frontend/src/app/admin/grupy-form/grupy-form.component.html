@@ -1,47 +1,27 @@
-<form #grupaForm="ngForm" (ngSubmit)="zapisz()">
-  <div class="form-container">
-    <h2>Dodaj Nową Grupę</h2>
+<div class="form-container">
+  <h2>Nowa Grupa Podmiotów</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="zapisz()">
     
     <div class="form-group">
-      <label for="nazwa">Nazwa Grupy</label>
+      <label>Nazwa Grupy *</label>
       <input 
         type="text" 
-        id="nazwa" 
-        name="nazwa" 
-        class="form-input"
-        [(ngModel)]="dane().nazwa"
-        required
+        class="form-input" 
+        formControlName="nazwa" 
+        placeholder="np. Banki Komercyjne"
       />
-    </div>
-
-    <div class="form-group">
-      <label for="opis">Opis Grupy</label>
-      <textarea 
-        id="opis" 
-        name="opis" 
-        rows="3"
-        class="form-input"
-        [(ngModel)]="dane().opis"
-      ></textarea>
-    </div>
-
-    <div class="form-check">
-      <input 
-        type="checkbox" 
-        id="aktywna" 
-        name="aktywna" 
-        class="form-checkbox"
-        [(ngModel)]="dane().aktywna"
-      />
-      <label for="aktywna">Grupa jest aktywna</label>
+      @if (form.get('nazwa')?.hasError('minlength')) {
+        <div style="color: red; font-size: 0.8em; margin-top: 5px;">
+          Nazwa musi mieć min. 3 znaki.
+        </div>
+      }
     </div>
 
     <div class="form-actions">
       <button type="button" class="button button-secondary" (click)="anuluj()">Anuluj</button>
-      <button type="submit" class="button button-primary" [disabled]="grupaForm.invalid">
-        Zapisz Grupę
-      </button>
+      <button type="submit" class="button button-primary" [disabled]="form.invalid">Zapisz Grupę</button>
     </div>
 
-  </div>
-</form>
+  </form>
+</div>

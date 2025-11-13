@@ -1,22 +1,7 @@
-import { Component, signal, Output, EventEmitter } from '@angular/core'; // <-- DODANE: Output i EventEmitter
+import { Component, signal, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-// ... (Interfejs i MOCK_UZYTKOWNICY bez zmian) ...
-interface Uzytkownik {
-  id: number;
-  email: string;
-  rola: 'Admin' | 'Merytoryczny' | 'Podmiot';
-  powiazanie: string;
-  aktywny: boolean;
-}
-const MOCK_UZYTKOWNICY: Uzytkownik[] = [
-  { id: 1, email: 'admin@uknf.gov.pl', rola: 'Admin', powiazanie: 'Panel Admina', aktywny: true },
-  { id: 2, email: 'jan.kowalski@uknf.gov.pl', rola: 'Merytoryczny', powiazanie: 'Grupa: Banki', aktywny: true },
-  { id: 3, email: 'anna.nowak@uknf.gov.pl', rola: 'Merytoryczny', powiazanie: 'Grupa: Domy Makl.', aktywny: true },
-  { id: 4, email: 'kontakt@pbp.pl', rola: 'Podmiot', powiazanie: 'Podmiot: PBP S.A.', aktywny: true },
-  { id: 5, email: 'audyt@gpw.pl', rola: 'Podmiot', powiazanie: 'Podmiot: GPW', aktywny: true },
-  { id: 6, email: 'byly.pracownik@uknf.gov.pl', rola: 'Merytoryczny', powiazanie: 'Brak', aktywny: false },
-];
+import { AdminService } from '../../core/services/admin.service';
+import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-uzytkownicy-list',
@@ -25,24 +10,127 @@ const MOCK_UZYTKOWNICY: Uzytkownik[] = [
   templateUrl: './uzytkownicy-list.component.html',
   styleUrl: './uzytkownicy-list.component.css'
 })
-export class UzytkownicyListComponent {
+export class UzytkownicyListComponent implements OnInit {
+
+  // wewnątrz klasy UzytkownicyListComponent
+
+  usunUzytkownika(user: User) {
+    // 1. Zabezpieczenie: Pytamy użytkownika
+    if (!confirm(`⚠️ Czy na pewno chcesz trwale usunąć użytkownika ${user.username}?`)) {
+      return;
+    }
+
+    // 2. Strzał do API
+    this.adminService.deleteUser(user.id).subscribe({
+      next: () => {
+        console.log(`🗑️ Usunięto użytkownika: ${user.id}`);
+        
+        // 3. Aktualizacja lokalna (usuwamy z listy na ekranie)
+        this.uzytkownicy.update(lista => lista.filter(u => u.id !== user.id));
+        
+        alert('Użytkownik został usunięty.');
+      },
+      error: (err) => {
+        console.error("❌ Błąd usuwania:", err);
+        alert("Błąd: Nie udało się usunąć użytkownika (sprawdź czy backend ma metodę DELETE).");
+      }
+    });
+  }
+
+  // Dodaj na górze klasy
+  @Output() chceEdytowac = new EventEmitter<User>();
+
+  // Podmień funkcję edytujUzytkownika
+  edytujUzytkownika(user: User) {
+    console.log("✏️ Kliknięto edycję dla:", user.username);
+    this.chceEdytowac.emit(user); // Wysyłamy usera do rodzica (Admin Panel)
+  }
   
-  // DODANE: Emiter zdarzeń
   @Output() chceDodacNowy = new EventEmitter<void>();
+  uzytkownicy = signal<User[]>([]);
 
-  uzytkownicy = signal(MOCK_UZYTKOWNICY);
+  constructor(private adminService: AdminService) {}
 
-  dodajNowegoUzytkownika() {
-    console.log("UI (Użytkownicy): Kliknięto 'Dodaj Nowego Użytkownika', emituję zdarzenie.");
-    // DODANE: Wysyłamy zdarzenie do rodzica (admin-panel)
-    this.chceDodacNowy.emit();
+  ngOnInit() {
+    this.pobierzUzytkownikow();
   }
 
-  edytujUzytkownika(id: number) {
-    console.log(`UI (Użytkownicy): Kliknięto 'Edytuj' dla ID: ${id}`);
+  // Funkcja pomocnicza: Zamienia cyfrę na tekst
+  private tlumaczRole(kod: number): string {
+    // Zgaduję enumy na podstawie standardów (0 to zazwyczaj Admin)
+    switch (kod) {
+      case 0: return 'Admin';
+      case 1: return 'Pracownik UKNF';
+      case 2: return 'Podmiot';
+      default: return 'Nieznana (' + kod + ')';
+    }
   }
 
-  wylaczUzytkownika(id: number) {
-    console.log(`UI (Użytkownicy): Kliknięto 'Wyłącz' dla ID: ${id}`);
+  pobierzUzytkownikow() {
+    this.adminService.getUsers().subscribe({
+      next: (data: any[]) => {
+        console.log("📦 DANE SUROWE:", data);
+
+        const naprawieni = data.map(u => ({
+          id: u.id,
+          email: u.email,
+          username: u.userName, // API: userName -> Model: username
+          
+          // TŁUMACZENIE ROLI: Liczba -> Tekst
+          role: this.tlumaczRole(u.rola), 
+          
+          // TŁUMACZENIE STATUSU: isDisabled -> isActive (negacja!)
+          isActive: !u.isDisabled, 
+
+          // Obsługa powiązania (jeśli null, wstaw kreskę)
+          powiazanie: u.podmiotId ? `Podmiot ID: ${u.podmiotId}` : '-' 
+        }));
+
+        console.log("✅ DANE PRZETŁUMACZONE:", naprawieni);
+        this.uzytkownicy.set(naprawieni);
+      },
+      error: (err) => console.error("❌ Błąd:", err)
+    });
   }
+
+  dodajNowegoUzytkownika() { this.chceDodacNowy.emit(); }
+  // edytujUzytkownika(id: any) { console.log('Edycja', id); }
+  wylaczUzytkownika(id: any) { console.log('Zmiana statusu', id); }
+
+  // uzytkownicy-list.component.ts
+
+// Zmień argument na cały obiekt 'user', żebyśmy znali jego aktualny status
+zmienStatus(user: User) {
+  if (user.isActive) {
+    // Jeśli jest aktywny -> BLOKUJEMY
+    if (!confirm(`Czy na pewno chcesz zablokować użytkownika ${user.username}?`)) return;
+
+    this.adminService.disableUser(user.id).subscribe({
+      next: () => {
+        // Aktualizujemy lokalnie (zmieniamy flagę na false)
+        this.zaktualizujLokalnie(user.id, false);
+        console.log(`⛔ Zablokowano użytkownika ${user.id}`);
+      },
+      error: (err) => alert("Nie udało się zablokować użytkownika.")
+    });
+
+  } else {
+    // Jeśli jest zablokowany -> AKTYWUJEMY
+    this.adminService.enableUser(user.id).subscribe({
+      next: () => {
+        // Aktualizujemy lokalnie (zmieniamy flagę na true)
+        this.zaktualizujLokalnie(user.id, true);
+        console.log(`✅ Odblokowano użytkownika ${user.id}`);
+      },
+      error: (err) => alert("Nie udało się odblokować użytkownika.")
+    });
+  }
+}
+
+// Pomocnicza funkcja, żeby nie odświeżać całej listy z API
+private zaktualizujLokalnie(id: string, czyAktywny: boolean) {
+  this.uzytkownicy.update(lista => 
+    lista.map(u => u.id === id ? { ...u, isActive: czyAktywny } : u)
+  );
+}
 }

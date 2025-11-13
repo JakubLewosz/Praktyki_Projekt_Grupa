@@ -1,54 +1,75 @@
-import { Component, signal, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Potrzebujemy FormsModule dla [(ngModel)]
-
-// =================================================================
-// TYMCZASOWE INTERFEJSY - Dostarczy je Osoba 3
-// =================================================================
-interface Podmiot {
-  id: number;
-  nazwa: string;
-  emailKontraktowy: string;
-  aktywny: boolean;
-  dataUtworzenia: string;
-  grupy: string[];
-}
-// Używamy "Partial", aby móc stworzyć pusty obiekt
-type NowyPodmiot = Partial<Podmiot>;
-// =================================================================
-
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AdminService } from '../../core/services/admin.service';
 
 @Component({
   selector: 'app-podmiot-form',
   standalone: true,
-  imports: [CommonModule, FormsModule], // Dodajemy FormsModule
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './podmiot-form.component.html',
   styleUrl: './podmiot-form.component.css'
 })
-export class PodmiotFormComponent {
-  // Ten komponent będzie wysyłał zdarzenia "w górę" do rodzica (app.ts)
-  @Output() chceAnulowac = new EventEmitter<void>();
-  @Output() chceZapisac = new EventEmitter<NowyPodmiot>();
+export class PodmiotFormComponent implements OnChanges {
+  
+  @Input() podmiotDoEdycji: any = null; // 👈 Tutaj wpadną dane
+  @Output() powrot = new EventEmitter<void>();
+  
+  private fb = inject(FormBuilder);
+  private adminService = inject(AdminService);
 
-  // Używamy sygnału do przechowywania danych formularza
-  dane = signal<NowyPodmiot>({
-    nazwa: '',
-    emailKontraktowy: '',
-    aktywny: true
+  form = this.fb.group({
+    nazwa: ['', Validators.required],
+    nip: ['', [Validators.required, Validators.minLength(10)]],
+    regon: ['']
   });
 
-  // Logika do symulacji
+  // 👇 Magia: Jak przyjdą dane, wypełnij formularz
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.podmiotDoEdycji) {
+      console.log("📝 Edytuję:", this.podmiotDoEdycji);
+      this.form.patchValue({
+        nazwa: this.podmiotDoEdycji.nazwa,
+        nip: this.podmiotDoEdycji.nip,
+        regon: this.podmiotDoEdycji.regon
+      });
+    } else {
+      this.form.reset(); // Jak nowy, to czyścimy
+    }
+  }
+
   zapisz() {
-    console.log("UI (Formularz): Kliknięto Zapisz", this.dane());
-    // W przyszłości Osoba 3 (API) podłączy tu serwis
-    // ...
-    // Wysyłamy zdarzenie zapisu
-    this.chceZapisac.emit(this.dane());
+    if (this.form.invalid) return;
+
+    if (this.podmiotDoEdycji) {
+      // --- TRYB EDYCJI (UPDATE) ---
+      console.log("Wysyłam UPDATE dla ID:", this.podmiotDoEdycji.id);
+      
+      this.adminService.updatePodmiot(this.podmiotDoEdycji.id, this.form.value).subscribe({
+        next: () => {
+          alert('Zaktualizowano podmiot!');
+          this.powrot.emit();
+        },
+        error: (err) => {
+          console.error(err);
+          // Tutaj zobaczysz swój błąd 404 - to oczekiwane!
+          alert('Backend nie gotowy: Brak metody PUT /api/Admin/podmioty/' + this.podmiotDoEdycji.id);
+        }
+      });
+
+    } else {
+      // --- TRYB DODAWANIA (CREATE) ---
+      this.adminService.createPodmiot(this.form.value).subscribe({
+        next: () => {
+          alert('Podmiot dodany!');
+          this.powrot.emit();
+        },
+        error: (err) => alert('Błąd dodawania')
+      });
+    }
   }
 
   anuluj() {
-    console.log("UI (Formularz): Kliknięto Anuluj");
-    // Wysyłamy zdarzenie anulowania
-    this.chceAnulowac.emit();
+    this.powrot.emit();
   }
 }

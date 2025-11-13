@@ -1,17 +1,15 @@
-<div class="admin-container">
-  <div class="admin-header">
-    <h2>Zarządzanie Użytkownikami</h2>
-    <button class="button button-primary" (click)="dodajNowegoUzytkownika()">
-      + Dodaj Nowego Użytkownika
-    </button>
+<div class="table-container">
+  <div class="header-actions">
+    <h2>Lista Użytkowników</h2>
+    <button (click)="dodajNowegoUzytkownika()" class="btn-add">+ Dodaj Użytkownika</button>
   </div>
 
-  <table class="admin-table">
+  <table>
     <thead>
       <tr>
         <th>Email / Login</th>
         <th>Rola</th>
-        <th>Powiązanie (Grupa / Podmiot)</th>
+        <th>Powiązanie</th>
         <th>Status</th>
         <th>Akcje</th>
       </tr>
@@ -19,27 +17,40 @@
     <tbody>
       @for (user of uzytkownicy(); track user.id) {
         <tr>
-          <td><strong>{{ user.email }}</strong></td>
           <td>
-            @if (user.rola === 'Admin') {
-              <span class="role-tag role-admin">{{ user.rola }}</span>
-            } @else if (user.rola === 'Merytoryczny') {
-              <span class="role-tag role-merytoryczny">{{ user.rola }}</span>
+            <strong>{{ user.username }}</strong><br>
+            <span style="font-size: 0.8em; color: gray">{{ user.email }}</span>
+          </td>
+
+          <td>
+            @if (user.role === 'Admin') {
+              <span class="badge badge-admin">Administrator</span>
+            } @else if (user.role === 'Podmiot') {
+              <span class="badge badge-podmiot">Podmiot</span>
             } @else {
-              <span class="role-tag role-podmiot">{{ user.rola }}</span>
+              <span class="badge badge-neutral">{{ user.role }}</span>
             }
           </td>
+
           <td>{{ user.powiazanie }}</td>
           <td>
-            @if (user.aktywny) {
-              <span class="badge badge-success">Aktywny</span>
+            @if (user.isActive) {
+              <span style="color: green; font-weight: bold;">Aktywny</span>
             } @else {
-              <span class="badge badge-danger">Wyłączony</span>
+              <span style="color: red; font-weight: bold;">Zablokowany</span>
             }
           </td>
           <td>
-            <button class="action-button edit" (click)="edytujUzytkownika(user.id)">Edytuj</button>
-            <button class="action-button disable" (click)="wylaczUzytkownika(user.id)">Wyłącz</button>
+              <button (click)="edytujUzytkownika(user)" class="btn-link">Edytuj</button>
+              
+              <button (click)="zmienStatus(user)" class="btn-link" 
+                      [style.color]="user.isActive ? 'orange' : 'green'">
+                {{ user.isActive ? 'Zablokuj' : 'Odblokuj' }}
+              </button>
+
+              <button (click)="usunUzytkownika(user)" class="btn-link" style="color: red; margin-left: 10px;">
+                Usuń
+              </button>
           </td>
         </tr>
       }

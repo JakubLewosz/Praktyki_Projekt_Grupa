@@ -1,37 +1,30 @@
-<div class="admin-container">
-  <div class="admin-header">
-    <h2>Zarządzanie Grupami</h2>
-    <button class="button button-primary" (click)="dodajNowaGrupe()">
-      + Dodaj Nową Grupę
-    </button>
+<div class="table-container">
+  <div class="header-actions">
+    <h2>Grupy Podmiotów</h2>
+    <button (click)="dodajGrupe()" class="btn-add">+ Utwórz Grupę</button>
   </div>
 
-  <table class="admin-table">
+  <table>
     <thead>
       <tr>
         <th>Nazwa Grupy</th>
-        <th>Opis</th>
-        <th>Liczba Podmiotów</th>
         <th>Status</th>
         <th>Akcje</th>
       </tr>
     </thead>
     <tbody>
-      @for (grupa of grupy(); track grupa.id) {
+      @for (g of grupy(); track g.id) {
         <tr>
-          <td><strong>{{ grupa.nazwa }}</strong></td>
-          <td>{{ grupa.opis }}</td>
-          <td>{{ grupa.liczbaPodmiotow }}</td>
+          <td>{{ g.nazwa }}</td>
           <td>
-            @if (grupa.aktywna) {
-              <span class="badge badge-success">Aktywna</span>
+            @if (g.isActive) {
+              <span class="badge-active">Aktywna</span>
             } @else {
-              <span class="badge badge-danger">Wyłączona</span>
+              <span class="badge-inactive">Ukryta</span>
             }
           </td>
           <td>
-            <button class="action-button edit" (click)="edytujGrupe(grupa.id)">Edytuj</button>
-            <button class="action-button disable" (click)="wylaczGrupe(grupa.id)">Wyłącz</button>
+            <button (click)="edytuj(g.id)" class="btn-link">Zmień nazwę</button>
           </td>
         </tr>
       }

@@ -1,55 +1,67 @@
 <div class="admin-layout">
-  <nav class="admin-nav">
-    <div class="nav-header">
-      <strong>Panel Administratora</strong>
-    </div>
-    <ul>
-      <li 
-        [class.aktywny]="widokGlowny() === 'podmioty'" 
+  <div class="sidebar">
+    <div class="sidebar-header">Panel Admina</div>
+    <nav>
+      <button 
+        [class.active]="widokGlowny() === 'podmioty'" 
         (click)="zmienWidokGlowny('podmioty')">
-        Podmioty
-      </li>
-      <li 
-        [class.aktywny]="widokGlowny() === 'grupy'" 
+        🏢 Podmioty
+      </button>
+      
+      <button 
+        [class.active]="widokGlowny() === 'grupy'" 
         (click)="zmienWidokGlowny('grupy')">
-        Grupy
-      </li>
-      <li 
-        [class.aktywny]="widokGlowny() === 'uzytkownicy'" 
+        📂 Grupy
+      </button>
+      
+      <button 
+        [class.active]="widokGlowny() === 'uzytkownicy'" 
         (click)="zmienWidokGlowny('uzytkownicy')">
-        Użytkownicy
-      </li>
-    </ul>
-  </nav>
+        👥 Użytkownicy
+      </button>
+    </nav>
+  </div>
 
-  <main class="admin-content">
+  <div class="content">
     
     @if (widokGlowny() === 'podmioty') {
+      
       @if (widokPodrzedny() === 'list') {
         <app-podmioty-list (chceDodacNowy)="pokazFormularz()"></app-podmioty-list>
       }
+      
       @if (widokPodrzedny() === 'form') {
-        <app-podmiot-form (chceAnulowac)="pokazListe()" (chceZapisac)="pokazListe()"></app-podmiot-form>
+        <app-podmiot-form (powrot)="pokazListe()"></app-podmiot-form>
       }
     }
 
     @if (widokGlowny() === 'grupy') {
+      
       @if (widokPodrzedny() === 'list') {
         <app-grupy-list (chceDodacNowy)="pokazFormularz()"></app-grupy-list>
       }
+      
       @if (widokPodrzedny() === 'form') {
-        <app-grupy-form (chceAnulowac)="pokazListe()" (chceZapisac)="pokazListe()"></app-grupy-form>
+        <app-grupa-form (powrot)="pokazListe()"></app-grupa-form>
       }
     }
 
     @if (widokGlowny() === 'uzytkownicy') {
+      
       @if (widokPodrzedny() === 'list') {
-        <app-uzytkownicy-list (chceDodacNowy)="pokazFormularz()"></app-uzytkownicy-list>
+        <app-uzytkownicy-list 
+          (chceDodacNowy)="pokazFormularz()"
+          (chceEdytowac)="rozpocznijEdycjeUzytkownika($event)"> 
+          </app-uzytkownicy-list>
       }
+      
       @if (widokPodrzedny() === 'form') {
-        <app-uzytkownicy-form (chceAnulowac)="pokazListe()" (chceZapisac)="pokazListe()"></app-uzytkownicy-form>
+        <app-uzytkownicy-form 
+          [userDoEdycji]="edytowanyUzytkownik()" 
+          (powrot)="zamknijFormularz()">
+          </app-uzytkownicy-form>
       }
     }
-    
-  </main>
+
+  </div>
 </div>

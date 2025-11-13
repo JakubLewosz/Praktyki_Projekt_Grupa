@@ -1,48 +1,50 @@
-<form #podmiotForm="ngForm" (ngSubmit)="zapisz()">
-  <div class="form-container">
-    <h2>Dodaj Nowy Podmiot</h2>
+<div class="form-container">
+  <h2>Dodaj Nowy Podmiot</h2>
+
+  <form [formGroup]="form" (ngSubmit)="zapisz()">
     
     <div class="form-group">
-      <label for="nazwa">Nazwa Podmiotu</label>
+      <label for="nazwa">Nazwa Podmiotu *</label>
       <input 
         type="text" 
         id="nazwa" 
-        name="nazwa" 
         class="form-input"
-        [(ngModel)]="dane().nazwa"
-        required
+        formControlName="nazwa" 
+        placeholder="np. Bank PKO BP"
+      />
+      <div *ngIf="form.get('nazwa')?.invalid && form.get('nazwa')?.touched" style="color: red; font-size: 0.8em;">
+        Nazwa jest wymagana.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="nip">NIP *</label>
+      <input 
+        type="text" 
+        id="nip" 
+        class="form-input"
+        formControlName="nip"
+        placeholder="np. 1234567890"
       />
     </div>
 
     <div class="form-group">
-      <label for="email">Email Kontaktowy</label>
+      <label for="regon">REGON</label>
       <input 
-        type="email" 
-        id="email" 
-        name="email" 
+        type="text" 
+        id="regon" 
         class="form-input"
-        [(ngModel)]="dane().emailKontraktowy"
-        required
+        formControlName="regon"
       />
-    </div>
-
-    <div class="form-check">
-      <input 
-        type="checkbox" 
-        id="aktywny" 
-        name="aktywny" 
-        class="form-checkbox"
-        [(ngModel)]="dane().aktywny"
-      />
-      <label for="aktywny">Podmiot jest aktywny</label>
     </div>
 
     <div class="form-actions">
       <button type="button" class="button button-secondary" (click)="anuluj()">Anuluj</button>
-      <button type="submit" class="button button-primary" [disabled]="podmiotForm.invalid">
+      
+      <button type="submit" class="button button-primary" [disabled]="form.invalid">
         Zapisz Podmiot
       </button>
     </div>
 
-  </div>
-</form>
+  </form>
+</div>

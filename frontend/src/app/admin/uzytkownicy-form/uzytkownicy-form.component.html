@@ -1,91 +1,40 @@
-<form #userForm="ngForm" (ngSubmit)="zapisz()">
-  <div class="form-container">
-    <h2>Dodaj Nowego Użytkownika</h2>
+<div class="form-container">
+  <!-- Tytuł zmienia się w zależności od trybu -->
+  <h2>{{ userDoEdycji ? 'Edytuj Użytkownika' : 'Dodaj Nowego Użytkownika' }}</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="zapisz()">
     
     <div class="form-group">
-      <label for="email">Email / Login</label>
-      <input 
-        type="email" 
-        id="email" 
-        name="email" 
-        class="form-input"
-        [(ngModel)]="dane().email"
-        required
-      />
+      <label>Nazwa Użytkownika (Username) *</label>
+      <input type="text" formControlName="username">
     </div>
 
     <div class="form-group">
-      <label for="rola">Rola Użytkownika</label>
-      <select 
-        id="rola" 
-        name="rola" 
-        class="form-input"
-        [(ngModel)]="dane().rola"
-        required>
-        <option [ngValue]="null" disabled>... Wybierz rolę ...</option>
-        <option value="Admin">Administrator UKNF</option>
-        <option value="Merytoryczny">Pracownik Merytoryczny UKNF</option>
-        <option value="Podmiot">Użytkownik Podmiotu</option>
+      <label>Email *</label>
+      <input type="email" formControlName="email">
+    </div>
+
+    <div class="form-group">
+      <label>Rola *</label>
+      <select formControlName="rola">
+        <!-- Pamiętaj, że w .ts mapujemy te teksty na liczby (0, 1, 2) -->
+        <option>Admin</option>
+        <option>Pracownik UKNF</option>
+        <option>Podmiot</option>
       </select>
     </div>
 
-    @if (dane().rola === 'Merytoryczny') {
-      <div class="form-group dynamic-field">
-        <label for="grupaId">Przypisz do Grupy Merytorycznej</label>
-        <select 
-          id="grupaId" 
-          name="grupaId" 
-          class="form-input"
-          [(ngModel)]="dane().powiazanieId"
-          required>
-          <option [ngValue]="null" disabled>... Wybierz grupę ...</option>
-          @for (grupa of listaGrup(); track grupa.id) {
-            <option [ngValue]="grupa.id">{{ grupa.nazwa }}</option>
-          }
-        </select>
-      </div>
-    }
-
-    @if (dane().rola === 'Podmiot') {
-      <div class="form-group dynamic-field">
-        <label for="podmiotId">Przypisz do Podmiotu</label>
-        <select 
-          id="podmiotId" 
-          name="podmiotId" 
-          class="form-input"
-          [(ngModel)]="dane().powiazanieId"
-          required>
-          <option [ngValue]="null" disabled>... Wybierz podmiot ...</option>
-          @for (podmiot of listaPodmiotow(); track podmiot.id) {
-            <option [ngValue]="podmiot.id">{{ podmiot.nazwa }}</option>
-          }
-        </select>
-      </div>
-    }
-
-    @if (dane().rola === 'Admin') {
-      <div class="info-box">
-        Użytkownik będzie miał pełne uprawnienia administracyjne.
-      </div>
-    }
-
-    <div class="form-check">
-      <input 
-        type="checkbox" 
-        id="aktywny" 
-        name="aktywny" 
-        class="form-checkbox"
-        [(ngModel)]="dane().aktywny"
-      />
-      <label for="aktywny">Użytkownik jest aktywny</label>
+    <div class="form-group">
+      <label>Hasło {{ userDoEdycji ? '(pozostaw puste, by nie zmieniać)' : '*' }}</label>
+      <input type="password" formControlName="password" autocomplete="new-password">
     </div>
+
+    <!-- (W przyszłości tu będzie wybór podmiotu, jeśli rola to "Podmiot") -->
 
     <div class="form-actions">
-      <button type="button" class="button button-secondary" (click)="anuluj()">Anuluj</button>
-      <button type="submit" class="button button-primary" [disabled]="userForm.invalid">
-        Zapisz Użytkownika
-      </button>
+      <button type="button" (click)="anuluj()" class="btn-cancel">Anuluj</button>
+      <button type="submit" class="btn-save" [disabled]="form.invalid">Zapisz</button>
     </div>
 
-  </div>
-</form>
+  </form>
+</div>
