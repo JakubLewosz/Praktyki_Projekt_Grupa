@@ -151,4 +151,4 @@ erDiagram
         string SciezkaPliku
         string TypMIME
     }
-'''
+```
