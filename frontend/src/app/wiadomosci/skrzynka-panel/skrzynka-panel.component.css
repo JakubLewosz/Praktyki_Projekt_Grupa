@@ -1,0 +1,4 @@
+/* Ten komponent-kontener nie potrzebuje własnych stylów */
+:host {
+  display: block;
+}

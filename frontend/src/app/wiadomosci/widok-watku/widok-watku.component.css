@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #333;
+}
+
+.watek-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+/* Nagłówek */
+.watek-header {
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+.watek-header h2 {
+  margin: 0.5rem 0 0 0;
+  font-size: 1.8rem;
+}
+.button-powrot {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+/* Wiadomości (Czat) */
+.wiadomosci-wrapper {
+  padding: 1.5rem 2rem;
+  background-color: #f9f9f9;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.wiadomosc {
+  margin-bottom: 1.5rem;
+}
+.autor-data {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.autor-data strong {
+  font-size: 0.95rem;
+}
+.autor-data span {
+  font-size: 0.85rem;
+  color: #666;
+}
+.tresc {
+  background-color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  line-height: 1.5;
+}
+
+/* Style dla "Ja" vs "Oni" */
+.wiadomosc.oni .tresc {
+  background-color: #e9ecef;
+  border-color: #e0e0e0;
+}
+.wiadomosc.ja .tresc {
+  background-color: #e6f7ff;
+  border-color: #b3dfff;
+}
+.wiadomosc.ja .autor-data {
+  flex-direction: row-reverse;
+}
+.wiadomosc.ja .autor-data strong {
+  color: #0056b3;
+}
+
+/* Załączniki */
+.zalaczniki {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+.zalacznik-link {
+  display: block;
+  margin-top: 0.25rem;
+  color: #007aff;
+  text-decoration: none;
+  font-weight: 500;
+}
+.zalacznik-link:hover {
+  text-decoration: underline;
+}
+
+/* Pole Odpowiedzi */
+.pole-odpowiedzi {
+  padding: 1.5rem 2rem;
+  border-top: 2px solid #f0f0f0;
+}
+.pole-odpowiedzi textarea {
+  width: 100%;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+.odpowiedz-akcje {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Przyciski (używamy tych samych co w adminie) */
+.button {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.button-primary { background-color: #007aff; color: white; }
+.button-primary:hover { transform: translateY(-2px); }
+.button-secondary { background-color: #e9ecef; color: #333; }
+.button-secondary:hover { background-color: #dbe0e4; }

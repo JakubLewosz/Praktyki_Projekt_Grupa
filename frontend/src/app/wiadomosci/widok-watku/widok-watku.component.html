@@ -1,0 +1,47 @@
+<div class="watek-container">
+  <div class="watek-header">
+    <button class="button-powrot" (click)="wrocDoListy()">
+      &larr; Wróć do listy
+    </button>
+    <h2>{{ watek().temat }}</h2>
+  </div>
+
+  <div class="wiadomosci-wrapper">
+    @for (wiadomosc of watek().wiadomosci; track wiadomosc.id) {
+      <div class="wiadomosc" [class.ja]="wiadomosc.kierunek === 'ja'" [class.oni]="wiadomosc.kierunek === 'oni'">
+        <div class="autor-data">
+          <strong>{{ wiadomosc.autor }}</strong>
+          <span>{{ wiadomosc.data | date:'MMM d, y, HH:mm' }}</span>
+        </div>
+        <div class="tresc">
+          {{ wiadomosc.tresc }}
+        </div>
+        
+        @if (wiadomosc.zalaczniki && wiadomosc.zalaczniki.length > 0) {
+          <div class="zalaczniki">
+            <strong>Załączniki:</strong>
+            @for (zalacznik of wiadomosc.zalaczniki; track zalacznik.nazwa) {
+              <a [href]="zalacznik.url" class="zalacznik-link" target="_blank">
+                {{ zalacznik.nazwa }}
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="pole-odpowiedzi">
+<textarea 
+      rows="4" 
+      placeholder="Wpisz treść odpowiedzi..."
+      [value]="nowaWiadomoscTresc()"
+      (input)="onTekstZmieniony($event)"> </textarea>
+    <div class="odpowiedz-akcje">
+      <button class="button button-secondary">Dodaj załącznik</button>
+      <button class="button button-primary" (click)="wyslijOdpowiedz()">
+        Wyślij Odpowiedź
+      </button>
+    </div>
+  </div>
+</div>

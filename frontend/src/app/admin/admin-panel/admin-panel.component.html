@@ -1,0 +1,55 @@
+<div class="admin-layout">
+  <nav class="admin-nav">
+    <div class="nav-header">
+      <strong>Panel Administratora</strong>
+    </div>
+    <ul>
+      <li 
+        [class.aktywny]="widokGlowny() === 'podmioty'" 
+        (click)="zmienWidokGlowny('podmioty')">
+        Podmioty
+      </li>
+      <li 
+        [class.aktywny]="widokGlowny() === 'grupy'" 
+        (click)="zmienWidokGlowny('grupy')">
+        Grupy
+      </li>
+      <li 
+        [class.aktywny]="widokGlowny() === 'uzytkownicy'" 
+        (click)="zmienWidokGlowny('uzytkownicy')">
+        Użytkownicy
+      </li>
+    </ul>
+  </nav>
+
+  <main class="admin-content">
+    
+    @if (widokGlowny() === 'podmioty') {
+      @if (widokPodrzedny() === 'list') {
+        <app-podmioty-list (chceDodacNowy)="pokazFormularz()"></app-podmioty-list>
+      }
+      @if (widokPodrzedny() === 'form') {
+        <app-podmiot-form (chceAnulowac)="pokazListe()" (chceZapisac)="pokazListe()"></app-podmiot-form>
+      }
+    }
+
+    @if (widokGlowny() === 'grupy') {
+      @if (widokPodrzedny() === 'list') {
+        <app-grupy-list (chceDodacNowy)="pokazFormularz()"></app-grupy-list>
+      }
+      @if (widokPodrzedny() === 'form') {
+        <app-grupy-form (chceAnulowac)="pokazListe()" (chceZapisac)="pokazListe()"></app-grupy-form>
+      }
+    }
+
+    @if (widokGlowny() === 'uzytkownicy') {
+      @if (widokPodrzedny() === 'list') {
+        <app-uzytkownicy-list (chceDodacNowy)="pokazFormularz()"></app-uzytkownicy-list>
+      }
+      @if (widokPodrzedny() === 'form') {
+        <app-uzytkownicy-form (chceAnulowac)="pokazListe()" (chceZapisac)="pokazListe()"></app-uzytkownicy-form>
+      }
+    }
+    
+  </main>
+</div>

@@ -1,0 +1,36 @@
+<div class="lista-container">
+<div class="lista-header">
+    <h2>Skrzynka Odbiorcza</h2>
+    <button class="button button-primary" (click)="dodajNowaWiadomosc()"> + Nowa Wiadomość (do UKNF)
+    </button>
+  </div>
+
+  <div class="lista-watkow">
+    @for (watek of watki(); track watek.id) {
+      <div 
+        class="watek-item" 
+        [class.nieprzeczytane]="watek.czyNieprzeczytane"
+        (click)="wybierzWatek(watek.id)">
+        
+        <div class="watek-nadawca">
+          @if (watek.czyNieprzeczytane) {
+            <span class="nieprzeczytane-kropka" title="Nieprzeczytane"></span>
+          }
+          {{ watek.nadawca }}
+        </div>
+        
+        <div class="watek-temat">
+          {{ watek.temat }}
+        </div>
+        
+        <div class="watek-fragment">
+          {{ watek.ostatniaWiadomosc }}
+        </div>
+
+        <div class="watek-data">
+          {{ watek.dataOstWiadomosci | date:'MMM d, HH:mm' }}
+        </div>
+      </div>
+    }
+  </div>
+</div>

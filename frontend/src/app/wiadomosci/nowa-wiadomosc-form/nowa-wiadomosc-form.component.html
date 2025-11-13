@@ -1,0 +1,46 @@
+<form #nowaWiadomoscForm="ngForm" (ngSubmit)="wyslij()">
+  <div class="form-container">
+    <h2>Nowa Wiadomość (do UKNF)</h2>
+    
+    <div class="form-group">
+      <label for="temat">Temat</label>
+      <input 
+        type="text" 
+        id="temat" 
+        name="temat" 
+        class="form-input"
+        [(ngModel)]="dane().temat"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="tresc">Treść</label>
+      <textarea 
+        id="tresc" 
+        name="tresc" 
+        rows="8"
+        class="form-input"
+        [(ngModel)]="dane().tresc"
+        required
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Załączniki</label>
+      <div class="upload-area">
+        <button type="button" class="button button-secondary">
+          Kliknij, aby dodać pliki...
+        </button>
+        </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="button button-secondary" (click)="anuluj()">Anuluj</button>
+      <button type="submit" class="button button-primary" [disabled]="nowaWiadomoscForm.invalid">
+        Wyślij Wiadomość
+      </button>
+    </div>
+
+  </div>
+</form>

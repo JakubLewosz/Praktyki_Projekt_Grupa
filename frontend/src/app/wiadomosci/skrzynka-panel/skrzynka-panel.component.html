@@ -1,0 +1,17 @@
+@if (widok() === 'lista') {
+  <app-lista-watkow 
+    (chceOtworzycWatek)="otworzWatek($event)"
+    (chceDodacNowa)="pokazFormularzNowejWiadomosci()"> </app-lista-watkow>
+}
+
+@if (widok() === 'watek') {
+  <app-widok-watku 
+    (chceWrocicDoListy)="wrocDoListy()">
+  </app-widok-watku>
+}
+
+@if (widok() === 'nowa') {
+  <app-nowa-wiadomosc-form
+    (chceAnulowac)="wrocDoListy()"
+    (chceWyslac)="wrocDoListy()"> </app-nowa-wiadomosc-form>
+}

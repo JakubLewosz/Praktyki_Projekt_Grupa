@@ -1,0 +1,46 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h2>Zarządzanie Podmiotami</h2>
+    <button class="button button-primary" (click)="dodajNowy()">
+      + Dodaj Nowy Podmiot
+    </button>
+  </div>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Nazwa Podmiotu</th>
+        <th>Email Kontaktowy</th>
+        <th>Status</th>
+        <th>Grupy</th>
+        <th>Akcje</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (podmiot of podmioty(); track podmiot.id) {
+        <tr>
+          <td><strong>{{ podmiot.nazwa }}</strong></td>
+          <td>{{ podmiot.emailKontraktowy }}</td>
+          <td>
+            @if (podmiot.aktywny) {
+              <span class="badge badge-success">Aktywny</span>
+            } @else {
+              <span class="badge badge-danger">Wyłączony</span>
+            }
+          </td>
+          <td>
+            <div class="group-tags">
+              @for (grupa of podmiot.grupy; track grupa) {
+                <span class="group-tag">{{ grupa }}</span>
+              }
+            </div>
+          </td>
+          <td>
+            <button class="action-button edit" (click)="edytuj(podmiot.id)">Edytuj</button>
+            <button class="action-button disable" (click)="wylacz(podmiot.id)">Wyłącz</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

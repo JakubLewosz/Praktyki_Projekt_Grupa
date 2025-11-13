@@ -1,0 +1,40 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h2>Zarządzanie Grupami</h2>
+    <button class="button button-primary" (click)="dodajNowaGrupe()">
+      + Dodaj Nową Grupę
+    </button>
+  </div>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Nazwa Grupy</th>
+        <th>Opis</th>
+        <th>Liczba Podmiotów</th>
+        <th>Status</th>
+        <th>Akcje</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (grupa of grupy(); track grupa.id) {
+        <tr>
+          <td><strong>{{ grupa.nazwa }}</strong></td>
+          <td>{{ grupa.opis }}</td>
+          <td>{{ grupa.liczbaPodmiotow }}</td>
+          <td>
+            @if (grupa.aktywna) {
+              <span class="badge badge-success">Aktywna</span>
+            } @else {
+              <span class="badge badge-danger">Wyłączona</span>
+            }
+          </td>
+          <td>
+            <button class="action-button edit" (click)="edytujGrupe(grupa.id)">Edytuj</button>
+            <button class="action-button disable" (click)="wylaczGrupe(grupa.id)">Wyłącz</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

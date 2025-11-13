@@ -1,0 +1,48 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h2>Zarządzanie Użytkownikami</h2>
+    <button class="button button-primary" (click)="dodajNowegoUzytkownika()">
+      + Dodaj Nowego Użytkownika
+    </button>
+  </div>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Email / Login</th>
+        <th>Rola</th>
+        <th>Powiązanie (Grupa / Podmiot)</th>
+        <th>Status</th>
+        <th>Akcje</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of uzytkownicy(); track user.id) {
+        <tr>
+          <td><strong>{{ user.email }}</strong></td>
+          <td>
+            @if (user.rola === 'Admin') {
+              <span class="role-tag role-admin">{{ user.rola }}</span>
+            } @else if (user.rola === 'Merytoryczny') {
+              <span class="role-tag role-merytoryczny">{{ user.rola }}</span>
+            } @else {
+              <span class="role-tag role-podmiot">{{ user.rola }}</span>
+            }
+          </td>
+          <td>{{ user.powiazanie }}</td>
+          <td>
+            @if (user.aktywny) {
+              <span class="badge badge-success">Aktywny</span>
+            } @else {
+              <span class="badge badge-danger">Wyłączony</span>
+            }
+          </td>
+          <td>
+            <button class="action-button edit" (click)="edytujUzytkownika(user.id)">Edytuj</button>
+            <button class="action-button disable" (click)="wylaczUzytkownika(user.id)">Wyłącz</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
