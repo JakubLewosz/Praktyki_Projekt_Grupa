@@ -1,22 +1,19 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer; // <-- NOWY Using
-using Microsoft.IdentityModel.Tokens; // <-- NOWY Using
-using System.Text; // <-- NOWY Using
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using backend.Data; // <-- NOWY Using
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Rejestracja Usług ---
 
-// 1. Pobieramy connection string (do SQLite)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// 2. Rejestrujemy DbContext (z UseSqlite)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
-// 3. Rejestrujemy system Tożsamości (Identity)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -27,8 +24,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-
-// 4. NOWA SEKCJA: Rejestrujemy Autentykację JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -38,7 +33,7 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
-    options.RequireHttpsMetadata = false; // Na razie false, dla deweloperki
+    options.RequireHttpsMetadata = false; 
     options.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuer = true,
@@ -49,14 +44,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-// 5. Rejestrujemy Kontrolery
 builder.Services.AddControllers();
 
-// 6. Rejestrujemy Swaggera (i dodajemy obsługę JWT w UI)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
-    // To doda kłódkę "Authorize" w interfejsie Swaggera
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme {
         Name = "Authorization",
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
@@ -78,11 +69,30 @@ builder.Services.AddSwaggerGen(c => {
     });
 });
 
-
 // --- Budujemy aplikację ---
 var app = builder.Build();
 
 // --- Konfiguracja "Rurociągu" (Pipeline) HTTP ---
+
+// --- NOWA SEKCJA: Uruchamiamy Seeder ---
+// Używamy "using" aby IServiceProvider (do którego seeder potrzebuje dostępu)
+// został automatycznie zwolniony po użyciu
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Uruchamiamy naszą metodę SeedAsync i czekamy na jej ukończenie
+        await DataSeeder.SeedAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Wystąpił błąd podczas seedowania bazy danych.");
+    }
+}
+// --- Koniec nowej sekcji ---
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -92,16 +102,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// WAŻNE: Dodajemy CORS - aby Angular mógł się łączyć
-// To pozwala na żądania z localhost:4200 (domyślny port Angulara)
 app.UseCors(policy => 
     policy.WithOrigins("http://localhost:4200")
     .AllowAnyMethod()
     .AllowAnyHeader());
 
-app.UseAuthentication(); // Musi być przed UseAuthorization
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.Run(); // Ta linia musi być na samym końcu
