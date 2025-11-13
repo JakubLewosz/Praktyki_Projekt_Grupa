@@ -100,7 +100,7 @@
 ---
 ```mermaid
 erDiagram
-    %% ENCJIE GLOWNE
+    %% RELACJE
     ApplicationUser ||--o{ Podmiot : "jest_powiazany_z_jednym"
     ApplicationUser ||--o{ Wiadomosc : "jest_autorem"
     Podmiot ||--o{ Grupa : "N{posiada_przynaleznosc}M"
@@ -110,13 +110,13 @@ erDiagram
     Wiadomosc ||--o{ Zalacznik : "N{zawiera}M"
     Grupa ||--o{ ApplicationUser : "N{ma_dostep_do}M"
     
-    %% DEFINICJA TABEL (Mermaid ERD wymaga definicji pól)
+    %% DEFINICJA TABEL
     ApplicationUser {
         string Id PK "PK z AspNet Identity"
         string UserName
-        Rola Rola
+        string Rola
         int PodmiotId FK "FK do Podmiot"
-        DateTime LockoutEnd
+        datetime LockoutEnd
     }
     
     Podmiot {
@@ -140,7 +140,7 @@ erDiagram
     Wiadomosc {
         int Id PK
         string Tresc
-        DateTime DataWyslania
+        datetime DataWyslania
         int WatekId FK
         string AutorId FK
     }
@@ -151,8 +151,4 @@ erDiagram
         string SciezkaPliku
         string TypMIME
     }
-
-    %% TABELE POSREDNIE (N:M)
-    %% W Mermaid N:M (many-to-many) jest reprezentowane poprzez linie
-    %% bez potrzeby jawnego definiowania tabel posrednich (GrupaPodmiot, GrupaApplicationUser, WiadomoscZalacznik)
 '''
