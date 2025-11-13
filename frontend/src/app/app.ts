@@ -1,10 +1,14 @@
-import { Component, signal } from '@angular/core'; // <-- Dodajemy signal
+import { Component, signal } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
-// Importujemy oba GŁÓWNE panele
+// Importujemy wszystkie 3 główne "widoki"
+import { LoginComponent } from './auth/login/login.component';
 import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 import { SkrzynkaPanelComponent } from './wiadomosci/skrzynka-panel/skrzynka-panel.component';
+
+// Definiujemy stany naszej aplikacji
+type Rola = 'admin' | 'uzytkownik' | null;
 
 @Component({
   selector: 'app-root',
@@ -12,6 +16,7 @@ import { SkrzynkaPanelComponent } from './wiadomosci/skrzynka-panel/skrzynka-pan
   imports: [
     CommonModule, 
     RouterOutlet, 
+    LoginComponent,       // <-- Importujemy
     AdminPanelComponent,
     SkrzynkaPanelComponent
   ],
@@ -19,15 +24,18 @@ import { SkrzynkaPanelComponent } from './wiadomosci/skrzynka-panel/skrzynka-pan
   styleUrl: './app.css'
 })
 export class AppComponent {
-  // Sygnał do przełączania się między dwoma głównymi widokami
-  // 'skrzynka' | 'admin'
-  glownyWidok = signal<'skrzynka' | 'admin'>('skrzynka');
+  
+  // Sygnał, który śledzi, czy ktoś jest zalogowany i jaką ma rolę
+  zalogowanaRola = signal<Rola>(null);
 
-  pokazSkrzynke() {
-    this.glownyWidok.set('skrzynka');
+  // Funkcja, którą wywoła komponent logowania po sukcesie
+  handleUdaneLogowanie(event: { rola: 'admin' | 'uzytkownik' }) {
+    console.log("APP (ROOT): Odebrano zdarzenie logowania, ustawiam rolę na:", event.rola);
+    this.zalogowanaRola.set(event.rola);
   }
 
-  pokazAdmina() {
-    this.glownyWidok.set('admin');
+  // Funkcja do wylogowania (będzie można ją podpiąć do przycisku w headerze)
+  wyloguj() {
+    this.zalogowanaRola.set(null);
   }
 }

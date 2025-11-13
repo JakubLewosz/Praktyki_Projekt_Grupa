@@ -1,0 +1,45 @@
+<div class="login-wrapper">
+  <div class="login-container">
+    <header class="login-header">
+      <img src="/assets/logo-uknf.png" alt="Logo UKNF" class="logo">
+      <h2>System Komunikacji</h2>
+      <p>Prosimy o zalogowanie się do platformy.</p>
+    </header>
+
+    <form #loginForm="ngForm" (ngSubmit)="zaloguj()">
+      <div class="form-group">
+        <label for="email">Email / Login</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="form-input"
+          [(ngModel)]="loginData().email"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Hasło</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-input"
+          [(ngModel)]="loginData().password"
+          required
+        />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="button button-primary" [disabled]="loginForm.invalid">
+          Zaloguj się
+        </button>
+      </div>
+
+      <div class="login-footer">
+        <a href="#">Nie pamiętasz hasła?</a>
+      </div>
+    </form>
+  </div>
+</div>

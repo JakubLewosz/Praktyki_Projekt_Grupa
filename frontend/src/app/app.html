@@ -1,28 +1,25 @@
-<header class="main-header">
-  <h1>System Komunikacji UKNF</h1>
+@if (!zalogowanaRola()) {
+  <app-login (udaneLogowanie)="handleUdaneLogowanie($event)"></app-login>
+}
 
-  <nav class="debug-nav">
-    <strong>Przełącz widok (jako Osoba 4):</strong>
-    <button (click)="pokazSkrzynke()" [class.aktywny]="glownyWidok() === 'skrzynka'">
-      Widok Użytkownika (Skrzynka)
+@if (zalogowanaRola()) {
+  
+  <header class="main-header">
+    <h1>System Komunikacji UKNF</h1>
+    <button (click)="wyloguj()" class="button-wyloguj">
+      Wyloguj (jako: {{ zalogowanaRola() }})
     </button>
-    <button (click)="pokazAdmina()" [class.aktywny]="glownyWidok() === 'admin'">
-      Widok Administratora
-    </button>
-  </nav>
-  
-</header>
+  </header>
 
-<main>
-  
-  @if (glownyWidok() === 'skrzynka') {
-    <app-skrzynka-panel></app-skrzynka-panel>
-  }
+  <main>
+    @if (zalogowanaRola() === 'admin') {
+      <app-admin-panel></app-admin-panel>
+    }
 
-  @if (glownyWidok() === 'admin') {
-    <app-admin-panel></app-admin-panel>
-  }
-  
-</main>
+    @if (zalogowanaRola() === 'uzytkownik') {
+      <app-skrzynka-panel></app-skrzynka-panel>
+    }
+  </main>
 
-<router-outlet></router-outlet>
+  <router-outlet></router-outlet>
+}
