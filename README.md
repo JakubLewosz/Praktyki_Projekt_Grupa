@@ -5,7 +5,7 @@
 * [Wymagania Ogólnosystemowe](#opis)
 * [Dokumentacja Backemd](#docbackend)
 ---
-  <a id="rola-1"></a>
+<a id="rola-1"></a>
 <details>
   <summary><h3>👤 Rola 1: Użytkownik Podmiotu</h3></summary>
   Osoba reprezentująca instytucję nadzorowaną (np. bank).
@@ -20,7 +20,6 @@
 | Móc odpowiedzieć na wiadomość grupową. | Moja odpowiedź trafi do indywidualnego wątku, widocznego tylko dla mnie i UKNF. |
 
 </details>
----
 <a id="rola-2"></a>
 <details>
   <summary><h3>👑 Rola 2: Użytkownik UKNF (Administrator)</h3></summary>
@@ -38,7 +37,6 @@
 | **Nie mieć dostępu** do przeglądania treści wiadomości. | Zachować poufność komunikacji zgodnie z moją rolą. |
 
 </details>
----
 <a id="rola-3"></a>
 <details>
   <summary><h3> 🕵️ Rola 3: Użytkownik UKNF (Merytoryczny)</h3></summary>
@@ -55,12 +53,11 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 | Aby każda konwersacja (wątek) była przypisana do grupy. | Zapewnić, że tylko uprawnieni użytkownicy merytoryczni (z tej samej grupy) będą mieli do niej dostęp. |
 | (Opcjonalnie) Mieć możliwość tworzenia własnych, prywatnych list adresatów. | Ułatwić sobie wysyłanie wiadomości do często wybieranego podzbioru podmiotów. |
 | Mieć możliwość wysłania wiadomości do jednej osoby | Efektywnie komunikować sie z podmiotem |
----
 </details>
----
 <a id="opis"></a>
-### ⚙️ Wymagania Ogólnosystemowe
-To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
+<details>
+  <summary>⚙️ Wymagania Ogólnosystemowe</summary>
+  To są większe bloki funkcjonalne, które obejmują wiele z powyższych historyjek:
 
 * **System Uwierzytelniania:** Pełna obsługa logowania, ról i uprawnień.
 * **Mechanizm Wiadomości:** Logika wysyłania, odbierania i wątkowania rozmów.
@@ -68,6 +65,8 @@ To są większe bloki funkcjonalne, które obejmują wiele z powyższych history
 * **Logika Wysyłki Grupowej:** Kluczowy mechanizm pozwalający na wysyłkę "jeden do wielu" z zachowaniem prywatności i optymalizacją zasobów.
 * **Kontrola Dostępu (Grupy):** Ścisłe powiązanie dostępu do wątków z przynależnością użytkowników merytorycznych do grup.
 
+
+</details>
 <details id="docbackend">
   <summary>Dokumentacja Backend</summary>
   
