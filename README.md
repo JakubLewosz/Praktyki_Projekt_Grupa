@@ -62,4 +62,4 @@ To są większe bloki funkcjonalne, które obejmują wiele z powyższych history
 
 
 ## Dokumentacja Backend
-{% include 'https://github.com/JakubLewosz/Praktyki_Projekt_Grupa/blob/main/backend/BackendSpecyfikacjaTechniczna.md' %}
+{! include 'https://github.com/JakubLewosz/Praktyki_Projekt_Grupa/blob/main/backend/BackendSpecyfikacjaTechniczna.md' !}
