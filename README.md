@@ -68,7 +68,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 
 </details>
 <details id="docbackend">
-  <summary>Dokumentacja Backend</summary>
+  <summary>💻 Dokumentacja Backend</summary>
   
 # 📂 Struktura Projektu: Komunikator UKNF (Backend)
 
@@ -184,6 +184,6 @@ erDiagram
   
 </details>
 <details id="docfrontend">
-  <summary>Dokumentacja Frontend</summary>
+  <summary><h3>🖼️ Dokumentacja Frontend</h3></summary>
   W budowie 
 </details>
