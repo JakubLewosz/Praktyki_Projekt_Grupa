@@ -9,8 +9,6 @@ namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    // Ten atrybut zabezpiecza CAŁY kontroler.
-    // Dostęp ma tylko użytkownik z tokenem JWT, który ma rolę "AdminUKNF"
     [Authorize(Roles = "AdminUKNF")]
     public class AdminController : ControllerBase
     {
@@ -28,12 +26,10 @@ namespace backend.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
         {
-            // Sprawdzenie, czy jeśli rola to Podmiot, to PodmiotId jest podane
             if (dto.Rola == RolaUzytkownika.Podmiot && !dto.PodmiotId.HasValue)
             {
                 return BadRequest(new { message = "PodmiotId jest wymagany dla użytkownika typu Podmiot." });
             }
-            // Sprawdzenie, czy podany PodmiotId istnieje
             if (dto.PodmiotId.HasValue)
             {
                 var podmiotExists = await _context.Podmioty.AnyAsync(p => p.Id == dto.PodmiotId.Value);
@@ -58,13 +54,12 @@ namespace backend.Controllers
                 return BadRequest(result.Errors);
             }
 
-            return Ok(new { message = "Użytkownik stworzony pomyślnie." });
+            return Ok(new { message = "Użytkownik stworzony pomyślnie.", userId = newUser.Id });
         }
 
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers()
         {
-            // Zwracamy listę użytkowników (bez haseł oczywiście)
             var users = await _userManager.Users
                 .Select(u => new 
                 {
@@ -85,8 +80,6 @@ namespace backend.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound("Użytkownik nie znaleziony.");
 
-            // "Wyłączenie" użytkownika polega na ustawieniu mu blokady (Lockout)
-            // na 100 lat.
             var result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.Now.AddYears(100));
             if (!result.Succeeded) return BadRequest(result.Errors);
             
@@ -99,7 +92,6 @@ namespace backend.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound("Użytkownik nie znaleziony.");
 
-            // "Włączenie" to usunięcie blokady
             var result = await _userManager.SetLockoutEndDateAsync(user, null);
             if (!result.Succeeded) return BadRequest(result.Errors);
 
@@ -166,7 +158,7 @@ namespace backend.Controllers
 
         // --- Zarządzanie Powiązaniami ---
 
-        [HttpPost("grupy/assign-podmiot")]
+        [HttpPost("assign-podmiot-to-grupa")]
         public async Task<IActionResult> AssignPodmiotToGrupa([FromBody] AssignPodmiotRequestDto dto)
         {
             var podmiot = await _context.Podmioty.Include(p => p.Grupy)
@@ -183,6 +175,36 @@ namespace backend.Controllers
             }
             
             return Ok(new { message = "Podmiot przypisany do grupy." });
+        }
+
+        // --- NOWY ENDPOINT (KROK 8) ---
+        [HttpPost("assign-user-to-grupa")]
+        public async Task<IActionResult> AssignGrupaToUser([FromBody] AssignGrupaToUserDto dto)
+        {
+            // Pobieramy użytkownika (upewniając się, że dołączamy jego listę grup)
+            var user = await _userManager.Users
+                .Include(u => u.Grupy)
+                .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+            
+            if (user == null) return NotFound("Użytkownik nie znaleziony.");
+
+            // Tylko użytkownicy merytoryczni mogą być dodawani do grup
+            if (user.Rola != RolaUzytkownika.MerytorycznyUKNF)
+            {
+                return BadRequest("Tylko Użytkownicy Merytoryczni UKNF mogą być przypisywani do grup.");
+            }
+
+            var grupa = await _context.Grupy.FindAsync(dto.GrupaId);
+            if (grupa == null) return NotFound("Grupa nie znaleziona.");
+
+            // Dodajemy grupę do kolekcji użytkownika
+            if (!user.Grupy.Contains(grupa))
+            {
+                user.Grupy.Add(grupa);
+                await _userManager.UpdateAsync(user); // Używamy UpdateAsync z UserManager
+            }
+
+            return Ok(new { message = "Użytkownik merytoryczny przypisany do grupy." });
         }
     }
 }

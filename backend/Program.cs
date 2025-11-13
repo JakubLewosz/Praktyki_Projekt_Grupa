@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using backend.Data;
-using Microsoft.Extensions.FileProviders; // Potrzebne dla PhysicalFileProvider
-using System.IO; // Potrzebne dla Path
+using Microsoft.Extensions.FileProviders;
+using System.IO;
+using backend.Services; // <-- Ten using jest kluczowy
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Rejestrujemy nasz serwis
+builder.Services.AddScoped<ThreadService>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -75,7 +79,7 @@ builder.Services.AddSwaggerGen(c => {
 // --- Budujemy aplikację ---
 var app = builder.Build();
 
-// --- Seeder (zostaje bez zmian) ---
+// --- Seeder ---
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -89,7 +93,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Wystąpił błąd podczas seedowania bazy danych.");
     }
 }
-
 
 // --- Konfiguracja "Rurociągu" (Pipeline) HTTP ---
 
@@ -106,21 +109,13 @@ app.UseCors(policy =>
     .AllowAnyMethod()
     .AllowAnyHeader());
 
-// --- SEKCJA PLIKÓW STATYCZNYCH (POPRAWIONA) ---
-// Używamy domyślnego folderu 'wwwroot' (jeśli istnieje)
 app.UseStaticFiles(); 
-
-// Dodajemy możliwość serwowania plików z folderu 'uploads'
 app.UseStaticFiles(new StaticFileOptions
 {
-    //
-    // POPRAWKA: Używamy 'app.Environment.ContentRootPath' zamiast 'builder.Environment.ContentRootPath'
-    //
     FileProvider = new PhysicalFileProvider(
         Path.Combine(app.Environment.ContentRootPath, "uploads")),
     RequestPath = "/uploads"
 });
-// --- Koniec sekcji ---
 
 app.UseAuthentication(); 
 app.UseAuthorization();
