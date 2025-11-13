@@ -92,9 +92,9 @@
 | **Podmiot - ApplicationUser** | **1 do 0/1** | Jeden Podmiot może być powiązany z wieloma Użytkownikami typu `Podmiot`. |
 | **Podmiot - Grupa** | **Wiele do Wielu** | Podmiot może należeć do wielu Grup (tabela pośrednia `GrupaPodmiot`). |
 | **ApplicationUser - Grupa** | **Wiele do Wielu** | Użytkownik Merytoryczny UKNF może być przypisany do wielu Grup (tabela pośrednia `GrupaApplicationUser`). |
-| **Watek - Grupa** | **1 do N** | Jeden Wątek jest zawsze przypisany do jednej Grupy. |
-| **Watek - Wiadomosc** | **1 do N** | Jeden Wątek zawiera wiele Wiadomości. |
-| **Wiadomosc - ApplicationUser**| **N do 1** | Wiadomość ma jednego Autora. |
+| **Watek - Grupa** | **1 do Wielu** | Jeden Wątek jest zawsze przypisany do jednej Grupy. |
+| **Watek - Wiadomosc** | **1 do Wielu** | Jeden Wątek zawiera wiele Wiadomości. |
+| **Wiadomosc - ApplicationUser**| **Wiele do 1** | Wiadomość ma jednego Autora. |
 | **Wiadomosc - Zalacznik** | **Wiele do Wielu** | Wiadomość może mieć wiele Załączników (tabela pośrednia `WiadomoscZalacznik`). |
 
 ---
