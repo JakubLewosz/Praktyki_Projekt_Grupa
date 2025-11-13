@@ -177,3 +177,7 @@ erDiagram
 
   
 </details>
+<details id="docfrontend">
+  <summary>Dokumentacja Backend</summary>
+  
+</details>
