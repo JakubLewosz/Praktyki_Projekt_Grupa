@@ -62,6 +62,17 @@
           </app-uzytkownicy-form>
       }
     }
+    @if (widokPodrzedny() === 'list') {
+  <app-podmioty-list 
+    (chceDodacNowy)="pokazFormularz()"
+    (chceEdytowac)="rozpocznijEdycjePodmiotu($event)"> </app-podmioty-list>
+  }
+
+  @if (widokPodrzedny() === 'form') {
+    <app-podmiot-form 
+      [podmiotDoEdycji]="edytowanyPodmiot()"  (powrot)="zamknijFormularzPodmiotu()">
+    </app-podmiot-form>
+  }
 
   </div>
 </div>
