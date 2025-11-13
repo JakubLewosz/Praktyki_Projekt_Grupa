@@ -3,6 +3,7 @@
 * [Rola 2: Użytkownik UKNF (Administrator)](#rola-2)
 * [Rola 3: Użytkownik UKNF (Merytoryczny)](#rola-3)
 * [Wymagania Ogólnosystemowe](#opis)
+* [Dokumentacja Backemd](#docbackend)
 ---
   <a id="rola-1"></a>
 ### 👤 Rola 1: Użytkownik Podmiotu
@@ -60,7 +61,7 @@ To są większe bloki funkcjonalne, które obejmują wiele z powyższych history
 * **Logika Wysyłki Grupowej:** Kluczowy mechanizm pozwalający na wysyłkę "jeden do wielu" z zachowaniem prywatności i optymalizacją zasobów.
 * **Kontrola Dostępu (Grupy):** Ścisłe powiązanie dostępu do wątków z przynależnością użytkowników merytorycznych do grup.
 
-<details>
+<details id="docbackend">
   <summary>Dokumentacja Backend</summary>
   
 # 📂 Struktura Projektu: Komunikator UKNF (Backend)
