@@ -59,3 +59,7 @@ To są większe bloki funkcjonalne, które obejmują wiele z powyższych history
 * **Obsługa Załączników:** Możliwość przesyłania wielu plików wraz z ustalonymi limitami (ilościowymi i rozmiaru).
 * **Logika Wysyłki Grupowej:** Kluczowy mechanizm pozwalający na wysyłkę "jeden do wielu" z zachowaniem prywatności i optymalizacją zasobów.
 * **Kontrola Dostępu (Grupy):** Ścisłe powiązanie dostępu do wątków z przynależnością użytkowników merytorycznych do grup.
+
+
+## Dokumentacja Backend
+{% include 'https://github.com/JakubLewosz/Praktyki_Projekt_Grupa/blob/main/backend/BackendSpecyfikacjaTechniczna.md' %}
