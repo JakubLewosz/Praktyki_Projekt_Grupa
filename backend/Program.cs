@@ -4,7 +4,9 @@ using backend.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using backend.Data; // <-- NOWY Using
+using backend.Data;
+using Microsoft.Extensions.FileProviders; // Potrzebne dla PhysicalFileProvider
+using System.IO; // Potrzebne dla Path
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,20 +71,16 @@ builder.Services.AddSwaggerGen(c => {
     });
 });
 
+
 // --- Budujemy aplikację ---
 var app = builder.Build();
 
-// --- Konfiguracja "Rurociągu" (Pipeline) HTTP ---
-
-// --- NOWA SEKCJA: Uruchamiamy Seeder ---
-// Używamy "using" aby IServiceProvider (do którego seeder potrzebuje dostępu)
-// został automatycznie zwolniony po użyciu
+// --- Seeder (zostaje bez zmian) ---
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        // Uruchamiamy naszą metodę SeedAsync i czekamy na jej ukończenie
         await DataSeeder.SeedAsync(services);
     }
     catch (Exception ex)
@@ -91,8 +89,9 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Wystąpił błąd podczas seedowania bazy danych.");
     }
 }
-// --- Koniec nowej sekcji ---
 
+
+// --- Konfiguracja "Rurociągu" (Pipeline) HTTP ---
 
 if (app.Environment.IsDevelopment())
 {
@@ -107,9 +106,25 @@ app.UseCors(policy =>
     .AllowAnyMethod()
     .AllowAnyHeader());
 
+// --- SEKCJA PLIKÓW STATYCZNYCH (POPRAWIONA) ---
+// Używamy domyślnego folderu 'wwwroot' (jeśli istnieje)
+app.UseStaticFiles(); 
+
+// Dodajemy możliwość serwowania plików z folderu 'uploads'
+app.UseStaticFiles(new StaticFileOptions
+{
+    //
+    // POPRAWKA: Używamy 'app.Environment.ContentRootPath' zamiast 'builder.Environment.ContentRootPath'
+    //
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(app.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
+// --- Koniec sekcji ---
+
 app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run(); // Ta linia musi być na samym końcu
+app.Run();
