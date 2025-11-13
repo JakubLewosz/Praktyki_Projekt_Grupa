@@ -6,8 +6,9 @@
 * [Dokumentacja Backemd](#docbackend)
 ---
   <a id="rola-1"></a>
-### 👤 Rola 1: Użytkownik Podmiotu
-Osoba reprezentująca instytucję nadzorowaną (np. bank).
+<details>
+  <summary><h3>👤 Rola 1: Użytkownik Podmiotu</h3></summary>
+  Osoba reprezentująca instytucję nadzorowaną (np. bank).
 
 | Wymaganie (Co chcę) | Cel (Po co) |
 | :--- | :--- |
@@ -18,10 +19,11 @@ Osoba reprezentująca instytucję nadzorowaną (np. bank).
 | Otrzymując wiadomość wysłaną do całej grupy (np. "Banki"), nie widzieć innych adresatów. | Zachować poufność korespondencji. |
 | Móc odpowiedzieć na wiadomość grupową. | Moja odpowiedź trafi do indywidualnego wątku, widocznego tylko dla mnie i UKNF. |
 
+</details>
 ---
 <a id="rola-2"></a>
 <details>
-  <summary>### 👑 Rola 2: Użytkownik UKNF (Administrator)</summary>
+  <summary><h3>👑 Rola 2: Użytkownik UKNF (Administrator)</h3></summary>
   Pracownik UKNF odpowiedzialny za zarządzanie systemem, bez dostępu do treści wiadomości.
 
 | Wymaganie (Co chcę) | Cel (Po co) |
@@ -36,7 +38,6 @@ Osoba reprezentująca instytucję nadzorowaną (np. bank).
 | **Nie mieć dostępu** do przeglądania treści wiadomości. | Zachować poufność komunikacji zgodnie z moją rolą. |
 
 </details>
-
 ---
 <a id="rola-3"></a>
 <details>
