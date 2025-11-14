@@ -27,6 +27,8 @@
     * `ThreadDetailsDto.cs`
     * `ThreadListDto.cs`
     * `UploadAttachmentResponseDto.cs`
+    * `EditPodmiotDto.cs`
+    * `EditUserDto.cs`
 * **Models/** (Modele encji bazy danych)
     * `ApplicationUser.cs` (Rozszerzenie IdentityUser o Role, PodmiotId i Grupy.)
     * `Podmiot.cs`
