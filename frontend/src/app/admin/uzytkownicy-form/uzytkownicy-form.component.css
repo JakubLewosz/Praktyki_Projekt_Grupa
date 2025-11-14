@@ -110,3 +110,16 @@ select.form-input {
 .button-primary:disabled { background-color: #99cfff; cursor: not-allowed; transform: none; }
 .button-secondary { background-color: #e9ecef; color: #333; }
 .button-secondary:hover { background-color: #dbe0e4; }
+/* ... (wszystkie style, które już masz) ... */
+
+/* === DODAJ TEN STYL NA KOŃCU PLIKU === */
+.error-message {
+  color: #d9534f; /* Czerwony kolor */
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #fbebee;
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+}

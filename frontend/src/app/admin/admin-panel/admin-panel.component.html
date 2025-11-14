@@ -1,5 +1,10 @@
+<header class="main-header">
+  <h1>System Komunikacji UKNF</h1>
+  <button (click)="wyloguj()" class="button-wyloguj">
+    Wyloguj (jako: admin)
+  </button>
+</header>
 <div class="admin-layout">
-  <!-- 1. PASEK BOCZNY (NAWIGACJA) -->
   <div class="sidebar">
     <div class="sidebar-header">Panel Admina</div>
     <nav>
@@ -23,13 +28,10 @@
     </nav>
   </div>
 
-  <!-- 2. GŁÓWNA TREŚĆ -->
   <div class="content">
     
-    <!-- ================= SEKCJA PODMIOTY ================= -->
     @if (widokGlowny() === 'podmioty') {
       
-      <!-- #podmiotList pozwala nam złapać ten komponent w .ts -->
       @if (widokPodrzedny() === 'list') {
         <app-podmioty-list 
           #podmiotList 
@@ -46,7 +48,6 @@
       }
     }
 
-    <!-- ================= SEKCJA GRUPY ================= -->
     @if (widokGlowny() === 'grupy') {
       
       @if (widokPodrzedny() === 'list') {
@@ -68,16 +69,8 @@
         </app-grupa-details>
       }
 
-      <!-- NOWY WIDOK do zarządzania członkami grupy -->
-      @if (widokPodrzedny() === 'details') {
-        <app-grupa-details
-          [grupaDoEdycji]="edytowanaGrupa()"
-          (powrot)="handlePowrotZFormularza()">
-        </app-grupa-details>
-      }
     }
 
-    <!-- ================= SEKCJA UŻYTKOWNICY ================= -->
     @if (widokGlowny() === 'uzytkownicy') {
       
       @if (widokPodrzedny() === 'list') {

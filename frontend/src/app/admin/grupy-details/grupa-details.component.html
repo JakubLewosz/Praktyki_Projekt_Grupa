@@ -1,14 +1,15 @@
 <div class="form-container">
   <h2>Zarządzaj Grupą: {{ aktualnaGrupa()?.nazwa }}</h2>
   
-  <!-- Sekcja 1: Dodawanie nowych członków -->
   <fieldset class="form-section">
     <legend>Dodaj podmiot do grupy</legend>
     <div class="add-member-form">
       
-      <!-- Lista rozwijana z dostępnymi podmiotami -->
-      <select [(ngModel)]="wybranyPodmiotId" class="form-input">
-        <option [ngValue]="null" disabled>Wybierz podmiot...</option>
+      <select 
+        class="form-input"
+        [ngModel]="wybranyPodmiotId()" 
+        (ngModelChange)="wybranyPodmiotId.set($event)">
+      <option [ngValue]="null" disabled>Wybierz podmiot...</option>
         @for (p of dostepnePodmioty(); track p.id) {
           <option [value]="p.id">{{ p.nazwa }}</option>
         }
@@ -25,7 +26,6 @@
     }
   </fieldset>
 
-  <!-- Sekcja 2: Lista obecnych członków -->
   <fieldset class="form-section">
     <legend>Obecni członkowie ({{ aktualnaGrupa()?.podmioty?.length || 0 }})</legend>
     
@@ -33,7 +33,6 @@
       @for (czlonek of aktualnaGrupa()?.podmioty; track czlonek.id) {
         <div class="member-item">
           <span>{{ czlonek.nazwa }}</span>
-          <!-- Używamy stylów z Twojego pliku app.css -->
           <button (click)="usunCzlonka(czlonek.id)" class="button-wyloguj">
             Usuń
           </button>
@@ -45,7 +44,6 @@
     </div>
   </fieldset>
 
-  <!-- Akcje -->
   <div class="form-actions">
     <button type="button" class="button button-secondary" (click)="anuluj()">Wróć do listy</button>
   </div>

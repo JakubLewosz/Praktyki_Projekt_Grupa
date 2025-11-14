@@ -3,14 +3,17 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #333;
 }
+
+/* 1. Główny kontener i nagłówek */
 .admin-container {
   width: 100%;
-  max-width: 1200px;
-  margin: 2rem auto;
+  /* max-width: 1200px; - Usunięte, aby dostosować się do rodzica */
+  margin: 0 auto;
   padding: 1.5rem;
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-sizing: border-box; /* Ważne dla dopasowania */
 }
 .admin-header {
   display: flex;
@@ -25,7 +28,24 @@
   font-size: 1.8rem;
 }
 
-/* Tabela */
+/* 2. Style przycisków (Standardowe) */
+.button {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.button-primary { 
+  background-color: #007aff; 
+  color: white; 
+}
+.button-primary:hover { 
+  transform: translateY(-2px); 
+}
+
+/* 3. Tabela */
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -47,7 +67,7 @@
   background-color: #f9f9f9;
 }
 
-/* Etykiety statusu i grup */
+/* 4. "Plakietki" Statusu (NAJWAŻNIEJSZE) */
 .badge {
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
@@ -57,27 +77,7 @@
 .badge-success { background-color: #e6f7ec; color: #28a745; }
 .badge-danger { background-color: #fdecea; color: #dc3545; }
 
-.group-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.group-tag {
-  background-color: #e9ecef;
-  color: #333;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-/* Przyciski */
-.button {
-  padding: 0.6rem 1.25rem;
-  border: none;
-  cursor: pointer;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-.button-primary { background-color: #007aff; color: white; }
-.button-primary:hover { transform: translateY(-2px); }
-
+/* 5. Przyciski Akcji (w tabeli) */
 .action-button {
   font-size: 0.9rem;
   background: none;
@@ -86,8 +86,13 @@
   border-radius: 6px;
   cursor: pointer;
   margin-right: 0.5rem;
+  font-weight: 500;
 }
 .action-button.edit { color: #007aff; }
 .action-button.edit:hover { background-color: #f0f7ff; }
+
 .action-button.disable { color: #dc3545; }
 .action-button.disable:hover { background-color: #fdecea; }
+
+.action-button.enable { color: #28a745; }
+.action-button.enable:hover { background-color: #e6f7ec; }

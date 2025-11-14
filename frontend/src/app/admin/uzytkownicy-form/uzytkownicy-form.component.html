@@ -1,23 +1,21 @@
 <div class="form-container">
-  <!-- Tytuł zmienia się w zależności od trybu -->
   <h2>{{ userDoEdycji ? 'Edytuj Użytkownika' : 'Dodaj Nowego Użytkownika' }}</h2>
   
   <form [formGroup]="form" (ngSubmit)="zapisz()">
     
     <div class="form-group">
       <label>Nazwa Użytkownika (Username) *</label>
-      <input type="text" formControlName="username">
+      <input type="text" formControlName="username" class="form-input">
     </div>
 
     <div class="form-group">
       <label>Email *</label>
-      <input type="email" formControlName="email">
+      <input type="email" formControlName="email" class="form-input">
     </div>
 
     <div class="form-group">
       <label>Rola *</label>
-      <select formControlName="rola">
-        <!-- Pamiętaj, że w .ts mapujemy te teksty na liczby (0, 1, 2) -->
+      <select formControlName="rola" class="form-input">
         <option>Admin</option>
         <option>Pracownik UKNF</option>
         <option>Podmiot</option>
@@ -26,36 +24,41 @@
 
     <div class="form-group">
       <label>Hasło {{ userDoEdycji ? '(pozostaw puste, by nie zmieniać)' : '*' }}</label>
-      <input type="password" formControlName="password" autocomplete="new-password">
-    </div>
-
-    <!-- (W przyszłości tu będzie wybór podmiotu, jeśli rola to "Podmiot") -->
-
-    <div class="form-actions">
-      <button type="button" (click)="anuluj()" class="btn-cancel">Anuluj</button>
-      <button type="submit" class="btn-save" [disabled]="form.invalid">Zapisz</button>
-    </div>
+      <input type="password" formControlName="password" autocomplete="new-password" class="form-input">
+      
+      @if (form.get('password')?.invalid && (form.get('password')?.touched || form.get('password')?.dirty)) {
+        <div class="error-message">
+          @if (form.get('password')?.hasError('required')) {
+            Hasło jest wymagane.
+          }
+          @if (form.get('password')?.hasError('minlength')) {
+            Hasło musi mieć co najmniej 6 znaków.
+          }
+        </div>
+      }
+      </div>
 
     @if (form.get('rola')?.value === 'Podmiot') {
-      <div class="form-group" style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-        
+      <div class="form-group dynamic-field">
         <label>Wybierz Podmiot (Firmę) *</label>
-        
-        <select formControlName="podmiotId">
+        <select formControlName="podmiotId" class="form-input">
           <option [ngValue]="null" disabled>Wybierz z listy...</option>
-          
           @for (podmiot of listaPodmiotow(); track podmiot.id) {
             <option [ngValue]="podmiot.id">{{ podmiot.nazwa }}</option>
           }
         </select>
-        
         @if (listaPodmiotow().length === 0) {
-           <div style="color: red; font-size: 0.8em; margin-top: 5px;">
+           <div class="error-message">
              Brak podmiotów do wyboru. Dodaj je w zakładce "Podmioty".
            </div>
         }
       </div>
     }
+
+    <div class="form-actions">
+      <button type="button" (click)="anuluj()" class="button button-secondary">Anuluj</button>
+      <button type="submit" class="button button-primary" [disabled]="form.invalid">Zapisz</button>
+    </div>
 
   </form>
 </div>

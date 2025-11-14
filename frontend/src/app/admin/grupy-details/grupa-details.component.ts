@@ -23,12 +23,9 @@ export class GrupaDetailsComponent implements OnChanges {
   wszystkiePodmioty = signal<Podmiot[]>([]);
   wybranyPodmiotId = signal<number | null>(null);
 
-  // Sygnał OBLICZENIOWY
+  // Sygnał OBLICZENIOWY (bez zmian)
   dostepnePodmioty = computed(() => {
-    // Teraz 'aktualnaGrupa()' ma prawo mieć pole 'podmioty'
     const czlonkowieIds = this.aktualnaGrupa()?.podmioty?.map(p => p.id) || [];
-    
-    // 👇 POPRAWKA BŁĘDU 'any': Dodajemy typ (p: Podmiot)
     return this.wszystkiePodmioty().filter((p: Podmiot) => !czlonkowieIds.includes(p.id));
   });
 
@@ -71,13 +68,27 @@ export class GrupaDetailsComponent implements OnChanges {
     });
   }
 
+  // === POPRAWIONA FUNKCJA USUNIĘCIA ===
   usunCzlonka(podmiotId: number) {
     const grupaId = this.aktualnaGrupa()?.id;
     if (!grupaId) return;
     
-    this.adminService.removePodmiotFromGrupa(podmiotId, grupaId).subscribe(() => {
-      alert('Usunięto podmiot z grupy (Symulacja)');
-      this.zaladujDane(); // Odśwież
+    // 1. Dodajemy potwierdzenie
+    if (!confirm("Czy na pewno chcesz usunąć ten podmiot z grupy?")) {
+      return; // Anuluj, jeśli użytkownik kliknie "Nie"
+    }
+
+    // 2. Dodajemy pełną obsługę 'next' i 'error'
+    this.adminService.removePodmiotFromGrupa(podmiotId, grupaId).subscribe({
+      next: () => {
+        alert('Usunięto podmiot z grupy.');
+        this.zaladujDane(); // Odśwież dane, aby zobaczyć zmianę
+      },
+      error: (err) => {
+        // Pokaż błąd, jeśli API zawiedzie
+        console.error("Błąd podczas usuwania członka:", err);
+        alert("Wystąpił błąd. Nie udało się usunąć podmiotu.\nTreść błędu: " + err.message);
+      }
     });
   }
 

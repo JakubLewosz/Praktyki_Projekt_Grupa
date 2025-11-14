@@ -1,10 +1,13 @@
-<div class="table-container">
-  <div class="header-actions">
+<div class="admin-container">
+  <div class="admin-header">
     <h2>Lista Podmiotów Nadzorowanych</h2>
-    <button (click)="dodajPodmiot()" class="btn-add">+ Dodaj Podmiot</button>
+    
+    <button (click)="dodajPodmiot()" class="button button-primary">
+      + Dodaj Podmiot
+    </button>
   </div>
 
-  <table>
+  <table class="admin-table">
     <thead>
       <tr>
         <th>Nazwa Podmiotu</th>
@@ -19,23 +22,25 @@
           <td><strong>{{ p.nazwa }}</strong></td>
           <td>
             <div>NIP: {{ p.nip }}</div>
-            <div style="font-size: 0.8em; color: gray">REGON: {{ p.regon }}</div>
+            <div style="font-size: 0.8em; color: gray;">REGON: {{ p.regon }}</div>
           </td>
           <td>
-             @if (p.isActive) {
-              <span style="color: green; font-weight: bold;">Aktywny</span>
+            
+            @if (p.isActive) {
+              <span class="badge badge-success">Aktywny</span>
             } @else {
-              <span style="color: red; font-weight: bold;">Zablokowany</span>
+              <span class="badge badge-danger">Zablokowany</span>
             }
           </td>
           <td>
-            <button (click)="edytuj(p.id)" class="btn-link">Edytuj</button>
-          </td>
-          <td>
-            <button (click)="zmienStatus(p)" class="btn-link" 
-              [style.color]="p.isActive ? 'red' : 'green'">
-              {{ p.isActive ? 'Zablokuj' : 'Odblokuj' }}
-            </button>
+            
+            <button (click)="edytuj(p)" class="action-button edit">Edytuj</button>
+            
+            @if (p.isActive) {
+              <button (click)="zmienStatus(p)" class="action-button disable">Zablokuj</button>
+            } @else {
+              <button (click)="zmienStatus(p)" class="action-button enable">Odblokuj</button>
+            }
           </td>
         </tr>
       }

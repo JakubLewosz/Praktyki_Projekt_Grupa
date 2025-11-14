@@ -1,10 +1,11 @@
-<div class="table-container">
-  <div class="header-actions">
+<div class="admin-container">
+  <div class="admin-header">
     <h2>Grupy Podmiotów</h2>
-    <button (click)="dodajGrupe()" class="btn-add">+ Utwórz Grupę</button>
+    
+    <button (click)="dodajGrupe()" class="button button-primary">+ Utwórz Grupę</button>
   </div>
 
-  <table>
+  <table class="admin-table">
     <thead>
       <tr>
         <th>Nazwa Grupy</th>
@@ -15,16 +16,18 @@
     <tbody>
       @for (g of grupy(); track g.id) {
         <tr>
-          <td>{{ g.nazwa }}</td>
+          <td><strong>{{ g.nazwa }}</strong></td>
           <td>
+            
             @if (g.isActive) {
-              <span class="badge-active">Aktywna</span>
+              <span class="badge badge-success">Aktywna</span>
             } @else {
-              <span class="badge-inactive">Ukryta</span>
+              <span class="badge badge-danger">Ukryta</span>
             }
           </td>
           <td>
-            <button (click)="zarzadzaj(g)" class="btn-link">Zarządzaj</button>
+
+            <button (click)="zarzadzaj(g)" class="action-button edit">Zarządzaj</button>
           </td>
         </tr>
       }

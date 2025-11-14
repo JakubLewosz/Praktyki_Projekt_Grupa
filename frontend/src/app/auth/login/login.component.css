@@ -1,65 +1,80 @@
 :host {
   display: flex;
-  align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background-color: #f4f7f6;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-.login-wrapper {
+  align-items: center;
+  
+  /* === POPRAWKA SCROLLA === */
+  height: 100vh; /* Zmieniamy 'min-height' na 'height' */
   width: 100%;
-  padding: 2rem;
+  overflow: hidden; /* Blokuje WSZYSTKIE paski przewijania */
+  /* ========================= */
+
+  background-color: #f0f2f5; 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #333;
+  box-sizing: border-box;
 }
 
 .login-container {
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 2.5rem;
   background-color: #fff;
+  padding: 2.5rem 2rem; 
   border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 420px; 
+  text-align: center;
+  /* Usunięto 'margin: 1rem 0', ponieważ 'align-items: center' 
+    na :host już centruje kontener w pionie.
+  */
 }
 
 .login-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.logo {
-  max-width: 180px;
-  margin-bottom: 1rem;
-}
-.login-header h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.8rem;
-  color: #333;
-}
-.login-header p {
-  margin: 0;
-  font-size: 1rem;
-  color: #555;
+  margin-bottom: 2rem; 
 }
 
-/* Style formularza (skopiowane i dostosowane) */
-.form-group {
-  margin-bottom: 1.25rem;
+.login-header .logo {
+  max-height: 70px; 
+  width: auto;
+  margin: 0 auto 1.5rem auto; 
+  display: block; 
 }
+
+.login-header h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem; 
+  color: #333;
+}
+
+.login-header p {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 0;
+}
+
+.form-group {
+  margin-bottom: 1.25rem; 
+  text-align: left;
+}
+
 .form-group label {
   display: block;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.6rem; 
+  font-size: 0.9rem;
+  color: #444;
 }
+
 .form-input {
-  display: block;
   width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   background-color: #f9f9f9;
   transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box; /* Ważna poprawka */
+  font-size: 1rem;
+  box-sizing: border-box; 
 }
+
 .form-input:focus {
   border-color: #007aff;
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
@@ -68,31 +83,32 @@
 }
 
 .form-actions {
-  margin-top: 2rem;
+  margin-top: 2rem; 
 }
-.button {
-  padding: 0.8rem 1.25rem;
-  border: none;
-  cursor: pointer;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  width: 100%;
-  font-size: 1rem;
-}
-.button-primary { background-color: #007aff; color: white; }
-.button-primary:hover { transform: translateY(-2px); }
-.button-primary:disabled { background-color: #99cfff; cursor: not-allowed; transform: none; }
 
-.login-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.9rem;
+.button {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.login-footer a {
-  color: #007aff;
-  text-decoration: none;
+
+.button-primary {
+  background-color: #007aff;
+  color: white;
 }
-.login-footer a:hover {
-  text-decoration: underline;
+
+.button-primary:hover {
+  background-color: #006aff;
+  transform: translateY(-1px);
+}
+
+.button-primary:disabled {
+  background-color: #99cfff;
+  cursor: not-allowed;
+  transform: none;
 }
