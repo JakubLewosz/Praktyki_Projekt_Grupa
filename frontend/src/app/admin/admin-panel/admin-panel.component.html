@@ -1,4 +1,5 @@
 <div class="admin-layout">
+  <!-- 1. PASEK BOCZNY (NAWIGACJA) -->
   <div class="sidebar">
     <div class="sidebar-header">Panel Admina</div>
     <nav>
@@ -22,13 +23,14 @@
     </nav>
   </div>
 
+  <!-- 2. GŁÓWNA TREŚĆ -->
   <div class="content">
     
     <!-- ================= SEKCJA PODMIOTY ================= -->
     @if (widokGlowny() === 'podmioty') {
       
+      <!-- #podmiotList pozwala nam złapać ten komponent w .ts -->
       @if (widokPodrzedny() === 'list') {
-        <!-- Dodajemy #podmiotList, by móc wywołać odświeżenie -->
         <app-podmioty-list 
           #podmiotList 
           (chceDodacNowy)="pokazFormularz()"
@@ -37,9 +39,8 @@
       }
       
       @if (widokPodrzedny() === 'form') {
-        <!-- Używamy jednej funkcji 'handlePowrot' do obsługi powrotu -->
         <app-podmiot-form 
-          [podmiotDoEdycji]="edytowanyPodmiot()" 
+          [podmiotDoEdycji]="edytowanyPodmiot()"
           (powrot)="handlePowrotZFormularza()">
         </app-podmiot-form>
       }
@@ -49,16 +50,30 @@
     @if (widokGlowny() === 'grupy') {
       
       @if (widokPodrzedny() === 'list') {
-        <app-grupy-list 
-          #grupaList
-          (chceDodacNowy)="pokazFormularz()">
-        </app-grupy-list>
+      <app-grupy-list 
+        #grupaList
+        (chceDodacNowy)="pokazFormularz()"
+        (chceZarzadzac)="rozpocznijZarzadzanieGrupa($event)">
+      </app-grupy-list>
       }
       
       @if (widokPodrzedny() === 'form') {
-        <app-grupa-form 
+        <app-grupa-form (powrot)="handlePowrotZFormularza()"></app-grupa-form>
+      }
+
+      @if (widokPodrzedny() === 'details') {
+        <app-grupa-details
+          [grupaDoEdycji]="edytowanaGrupa()"
           (powrot)="handlePowrotZFormularza()">
-        </app-grupa-form>
+        </app-grupa-details>
+      }
+
+      <!-- NOWY WIDOK do zarządzania członkami grupy -->
+      @if (widokPodrzedny() === 'details') {
+        <app-grupa-details
+          [grupaDoEdycji]="edytowanaGrupa()"
+          (powrot)="handlePowrotZFormularza()">
+        </app-grupa-details>
       }
     }
 
@@ -80,8 +95,6 @@
         </app-uzytkownicy-form>
       }
     }
-
-    <!-- USUNĄŁEM STĄD ZDUPLIKOWANE BLOKI KODU -->
 
   </div>
 </div>

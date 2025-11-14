@@ -1,17 +1,26 @@
-import { Component, signal, ViewChild } from '@angular/core'; // 👈 Dodaj ViewChild
+import { Component, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-// Importujemy WSZYSTKIE komponenty
+// Importujemy wszystkie komponenty list
 import { PodmiotyListComponent } from '../podmioty-list/podmioty-list.component';
-import { PodmiotFormComponent } from '../podmiot-form/podmiot-form.component';
 import { GrupyListComponent } from '../grupy-list/grupy-list.component';
-import { GrupaFormComponent } from '../grupy-form/grupy-form.component';
 import { UzytkownicyListComponent } from '../uzytkownicy-list/uzytkownicy-list.component';
+
+// Importujemy wszystkie komponenty formularzy/szczegółów
+import { PodmiotFormComponent } from '../podmiot-form/podmiot-form.component';
+// Upewnij się, że ścieżka do 'grupa-form' jest poprawna
+import { GrupaFormComponent } from '../grupy-form/grupy-form.component'; 
 import { UzytkownicyFormComponent } from '../uzytkownicy-form/uzytkownicy-form.component';
-import { User } from '../../core/models/user.model';
+// Upewnij się, że ścieżka do 'grupa-details' jest poprawna
+import { GrupaDetailsComponent } from '../grupy-details/grupa-details.component'; 
+
+// Importujemy modele
+import { User, Grupa, Podmiot } from '../../core/models/user.model';
+
+
 // Definiujemy, jakie mogą być widoki
 type WidokGlowny = 'podmioty' | 'grupy' | 'uzytkownicy';
-type WidokPodrzedny = 'list' | 'form';
+type WidokPodrzedny = 'list' | 'form' | 'details'; // Dodany 'details'
 
 @Component({
   selector: 'app-admin-panel',
@@ -21,9 +30,10 @@ type WidokPodrzedny = 'list' | 'form';
     PodmiotyListComponent,
     PodmiotFormComponent,
     GrupyListComponent,
-    GrupaFormComponent,
+    GrupaFormComponent,     
     UzytkownicyListComponent,
-    UzytkownicyFormComponent
+    UzytkownicyFormComponent,
+    GrupaDetailsComponent  // Dodany do importów
   ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.css'
@@ -36,7 +46,8 @@ export class AdminPanelComponent {
 
   // --- SYGNAŁY DO PRZEKAZYWANIA DANYCH EDYCJI ---
   edytowanyUzytkownik = signal<User | null>(null);
-  edytowanyPodmiot = signal<any>(null); // Użyj modelu Podmiot, jeśli masz
+  edytowanyPodmiot = signal<Podmiot | null>(null);
+  edytowanaGrupa = signal<Grupa | null>(null); // Dla 'details'
 
   // --- REFERENCJE DO KOMPONENTÓW LIST (do odświeżania) ---
   @ViewChild('podmiotList') podmiotListRef?: PodmiotyListComponent;
@@ -51,21 +62,25 @@ export class AdminPanelComponent {
   }
 
   pokazFormularz() {
-    // Czyścimy dane edycji, gdy klikamy "Dodaj nowy"
+    // Czyścimy wszystkie dane edycji, gdy klikamy "Dodaj nowy"
     this.edytowanyUzytkownik.set(null);
     this.edytowanyPodmiot.set(null);
+    this.edytowanaGrupa.set(null);
     this.widokPodrzedny.set('form');
   }
 
-  // --- KLUCZOWA POPRAWKA: Ta funkcja odświeża listę po powrocie z formularza ---
+  // Ta funkcja zamyka formularz i odświeża listę
   handlePowrotZFormularza() {
-    this.widokPodrzedny.set('list'); // 1. Wróć do widoku listy
+    const aktualnyWidok = this.widokGlowny();
+    this.widokPodrzedny.set('list'); 
 
-    // 2. Rozkaż odpowiedniej liście, aby załadowała się na nowo
-    // (Używamy setTimeout, aby dać Angularowi czas na przełączenie widoku)
+    // Czyścimy dane edycji
+    this.edytowanyUzytkownik.set(null);
+    this.edytowanyPodmiot.set(null);
+    this.edytowanaGrupa.set(null);
+
+    // Rozkazujemy odpowiedniej liście, aby załadowała się na nowo
     setTimeout(() => {
-      const aktualnyWidok = this.widokGlowny();
-      
       if (aktualnyWidok === 'podmioty' && this.podmiotListRef) {
         this.podmiotListRef.zaladujPodmioty();
       }
@@ -73,20 +88,27 @@ export class AdminPanelComponent {
         this.grupaListRef.zaladujGrupy();
       }
       if (aktualnyWidok === 'uzytkownicy' && this.userListRef) {
-        this.userListRef.pobierzUzytkownikow();
+        this.userListRef.pobierzUzytkownikow(); 
       }
     }, 0);
   }
 
-  // --- LOGIKA EDYCJI (bez zmian, już działała) ---
+  // --- LOGIKA STARTU EDYCJI / ZARZĄDZANIA ---
   
   rozpocznijEdycjeUzytkownika(user: User) {
     this.edytowanyUzytkownik.set(user);
     this.widokPodrzedny.set('form');
   }
 
-  rozpocznijEdycjePodmiotu(podmiot: any) {
+  rozpocznijEdycjePodmiotu(podmiot: Podmiot) {
     this.edytowanyPodmiot.set(podmiot); 
     this.widokPodrzedny.set('form');
+  }
+
+  // Funkcja do obsługi przycisku "Zarządzaj"
+  rozpocznijZarzadzanieGrupa(grupa: Grupa) {
+    console.log("2. [PANEL ADMINA] Odebrałem sygnał, przełączam widok na 'details'");
+    this.edytowanaGrupa.set(grupa);
+    this.widokPodrzedny.set('details');
   }
 }

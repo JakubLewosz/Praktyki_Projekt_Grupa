@@ -46,5 +46,6 @@ export interface Grupa {
   id: number;
   nazwa: string;
   isActive: boolean;
+  podmioty?: Podmiot[];
 }
 
