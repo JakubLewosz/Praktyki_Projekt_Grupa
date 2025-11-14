@@ -86,11 +86,9 @@ export class AdminService {
 
     // TODO: Poproś backendowca o endpoint do usuwania podmiotu z grupy
     // np. DELETE /api/Admin/remove-podmiot-from-grupa
-    removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
-    // Na razie zasymulujemy sukces
-    console.warn('Symulacja usunięcia podmiotu. Poproś o backend.');
-    return of({ success: true }).pipe(delay(500));
-    // return this.http.delete(`${this.apiUrl}/remove-podmiot-from-grupa`, { body: { podmiotId, grupaId } });
-    }
+removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
+    // To jest już prawdziwe zapytanie do API, którego zażądałeś
+    return this.http.delete(`${this.apiUrl}/grupy/${grupaId}/podmioty/${podmiotId}`);
+    }
 
 }

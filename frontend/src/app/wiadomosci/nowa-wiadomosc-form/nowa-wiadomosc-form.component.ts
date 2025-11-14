@@ -1,45 +1,60 @@
-import { Component, signal, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, inject, signal } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Potrzebujemy FormsModule dla [(ngModel)]
-
-// =================================================================
-// TYMCZASOWE DANE (Mock Data)
-// =================================================================
-interface NowaWiadomosc {
-  temat: string;
-  tresc: string;
-  // W prawdziwej aplikacji byłaby tu lista plików
-  zalaczniki: any[]; 
-}
-// =================================================================
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+// Ta ścieżka jest prawdopodobnie poprawna, błąd wynika z braku restartu serwera
+import { SkrzynkaService } from '../../core/services/skrzynka.service'; 
 
 @Component({
   selector: 'app-nowa-wiadomosc-form',
   standalone: true,
-  imports: [CommonModule, FormsModule], // Dodajemy FormsModule
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './nowa-wiadomosc-form.component.html',
   styleUrl: './nowa-wiadomosc-form.component.css'
 })
 export class NowaWiadomoscFormComponent {
-  // Emitery zdarzeń do rodzica (skrzynka-panel)
-  @Output() chceAnulowac = new EventEmitter<void>();
-  @Output() chceWyslac = new EventEmitter<NowaWiadomosc>();
 
-  // Dane formularza
-  dane = signal<NowaWiadomosc>({
-    temat: '',
-    tresc: '',
-    zalaczniki: []
+  @Output() powrot = new EventEmitter<void>();
+
+  private fb = inject(FormBuilder);
+  private skrzynkaService = inject(SkrzynkaService); 
+
+  isSending = signal(false);
+
+  form = this.fb.group({
+    temat: ['', Validators.required],
+    tresc: ['', Validators.required]
   });
 
-  wyslij() {
-    console.log("UI (Formularz Nowej Wiad.): Kliknięto Wyślij", this.dane());
-    // W przyszłości Osoba 3 (API) podepnie tu logikę
-    this.chceWyslac.emit(this.dane());
+  wyslijWiadomosc() {
+    if (this.form.invalid) {
+      alert('Oba pola (Temat i Treść) są wymagane.');
+      return;
+    }
+
+    this.isSending.set(true);
+    
+    const payload = {
+      temat: this.form.value.temat!,
+      tresc: this.form.value.tresc!
+    };
+
+    this.skrzynkaService.wyslijNowaWiadomosc(payload).subscribe({
+      next: () => {
+        alert('Wiadomość została wysłana (symulacja).');
+        this.isSending.set(false); 
+        this.powrot.emit(); 
+      },
+      // POPRAWKA BŁĘDU (dodajemy typ 'any' dla 'err')
+      error: (err: any) => {
+        console.error('Błąd wysyłania wiadomości:', err);
+        alert('Wystąpił błąd podczas wysyłania wiadomości.');
+        this.isSending.set(false); 
+      }
+    });
   }
 
   anuluj() {
-    console.log("UI (Formularz Nowej Wiad.): Kliknięto Anuluj");
-    this.chceAnulowac.emit();
+    if (this.isSending()) return;
+    this.powrot.emit();
   }
 }

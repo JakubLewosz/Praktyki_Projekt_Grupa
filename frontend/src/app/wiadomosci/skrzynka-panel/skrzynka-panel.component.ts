@@ -1,44 +1,59 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core'; // <-- Dodajemy signal
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router'; 
 
-// Importujemy WSZYSTKIE trzy komponenty
-import { ListaWatkowComponent } from '../lista-watkow/lista-watkow.component';
-import { WidokWatkuComponent } from '../widok-watku/widok-watku.component';
-import { NowaWiadomoscFormComponent } from '../nowa-wiadomosc-form/nowa-wiadomosc-form.component'; // <-- NOWY
+// Import formularza, który zaraz stworzymy
+import { NowaWiadomoscFormComponent } from '../nowa-wiadomosc-form/nowa-wiadomosc-form.component';
+
+// Definicja typów widoków
+type WidokSkrzynki = 'lista' | 'formularz';
 
 @Component({
   selector: 'app-skrzynka-panel',
   standalone: true,
   imports: [
-    CommonModule,
-    ListaWatkowComponent,
-    WidokWatkuComponent,
-    NowaWiadomoscFormComponent // <-- NOWY
+    CommonModule, 
+    NowaWiadomoscFormComponent // <-- Dodajemy formularz do importów
   ],
   templateUrl: './skrzynka-panel.component.html',
   styleUrl: './skrzynka-panel.component.css'
 })
-export class SkrzynkaPanelComponent {
-  // Zaktualizowany sygnał: teraz ma TRZY stany
-  widok = signal<'lista' | 'watek' | 'nowa'>('lista');
+export class SkrzynkaPanelComponent implements OnInit, OnDestroy {
 
-  wybranyWatekId = signal<number | null>(null);
+  // === NOWA LOGIKA WIDOKÓW ===
+  widok = signal<WidokSkrzynki>('lista'); // Domyślnie pokazujemy listę
 
-  // --- Funkcje do przełączania widoków ---
+  constructor(private router: Router) {}
 
-  otworzWatek(id: number) {
-    this.wybranyWatekId.set(id);
-    this.widok.set('watek');
-  }
-
-  // NOWA FUNKCJA
   pokazFormularzNowejWiadomosci() {
-    this.widok.set('nowa');
+    this.widok.set('formularz');
   }
 
-  // Ta funkcja będzie używana przez 2 komponenty, aby wrócić do listy
-  wrocDoListy() {
-    this.wybranyWatekId.set(null);
+  handlePowrotDoListy() {
     this.widok.set('lista');
+    // TODO: W przyszłości tutaj odświeżymy listę wiadomości
+  }
+  // === KONIEC LOGIKI WIDOKÓW ===
+
+
+  wyloguj() {
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
+  }
+
+  // Logika nasłuchiwania (bez zmian)
+  storageEventListener = (event: StorageEvent) => {
+    if (event.key === 'token') {
+      alert('Zostałeś automatycznie wylogowany z powodu akcji w innej karcie.');
+      this.router.navigate(['/login']);
+    }
+  };
+
+  ngOnInit() {
+    window.addEventListener('storage', this.storageEventListener);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('storage', this.storageEventListener);
   }
 }

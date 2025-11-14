@@ -68,24 +68,25 @@ export class GrupaDetailsComponent implements OnChanges {
     });
   }
 
-  // === POPRAWIONA FUNKCJA USUNIĘCIA ===
-  usunCzlonka(podmiotId: number) {
+usunCzlonka(podmiotId: number) {
     const grupaId = this.aktualnaGrupa()?.id;
     if (!grupaId) return;
     
-    // 1. Dodajemy potwierdzenie
+    // 1. Pytamy o potwierdzenie
     if (!confirm("Czy na pewno chcesz usunąć ten podmiot z grupy?")) {
-      return; // Anuluj, jeśli użytkownik kliknie "Nie"
+      return; 
     }
 
-    // 2. Dodajemy pełną obsługę 'next' i 'error'
+    // 2. Wołamy PRAWDZIWE API (które właśnie naprawiliśmy w serwisie)
     this.adminService.removePodmiotFromGrupa(podmiotId, grupaId).subscribe({
       next: () => {
         alert('Usunięto podmiot z grupy.');
-        this.zaladujDane(); // Odśwież dane, aby zobaczyć zmianę
+        
+        // 3. Po prostu ładujemy dane od nowa z serwera.
+        // To jest teraz czysta i poprawna metoda.
+        this.zaladujDane(); 
       },
       error: (err) => {
-        // Pokaż błąd, jeśli API zawiedzie
         console.error("Błąd podczas usuwania członka:", err);
         alert("Wystąpił błąd. Nie udało się usunąć podmiotu.\nTreść błędu: " + err.message);
       }
