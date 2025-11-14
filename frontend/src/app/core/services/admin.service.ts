@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs'; // 👈 DODANY IMPORT 'of'
+import { delay } from 'rxjs/operators'; // 👈 DODANY IMPORT 'delay'
 import { environment } from '../../../environments/environment';
-// Importujemy poprawne modele z pliku user.model.ts
 import { User, Podmiot, Grupa } from '../models/user.model';
 
 @Injectable({
@@ -69,5 +69,28 @@ export class AdminService {
     // ale zostawiamy go "na zaś".
     return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
   }
+
+  // ... (istniejące metody) ...
+
+// --- ZARZĄDZANIE CZŁONKAMI GRUPY ---
+
+    // GET /api/Admin/grupy/{id} (Zakładam, że ten endpoint istnieje i zwraca grupę z listą podmiotów)
+    getGrupaById(id: number): Observable<Grupa> {
+    return this.http.get<Grupa>(`${this.apiUrl}/grupy/${id}`);
+    }
+
+    // POST /api/Admin/assign-podmiot-to-grupa (Ten endpoint widzieliśmy w Swaggerze)
+    assignPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/assign-podmiot-to-grupa`, { podmiotId, grupaId });
+    }
+
+    // TODO: Poproś backendowca o endpoint do usuwania podmiotu z grupy
+    // np. DELETE /api/Admin/remove-podmiot-from-grupa
+    removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
+    // Na razie zasymulujemy sukces
+    console.warn('Symulacja usunięcia podmiotu. Poproś o backend.');
+    return of({ success: true }).pipe(delay(500));
+    // return this.http.delete(`${this.apiUrl}/remove-podmiot-from-grupa`, { body: { podmiotId, grupaId } });
+    }
 
 }

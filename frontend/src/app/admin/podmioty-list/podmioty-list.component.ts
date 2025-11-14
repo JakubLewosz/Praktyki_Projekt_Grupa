@@ -25,18 +25,18 @@ export class PodmiotyListComponent implements OnInit {
   zaladujPodmioty() {
     this.adminService.getPodmioty().subscribe({
       next: (data: any[]) => {
-        console.log("📦 PODMIOTY (Raw):", data);
+        console.log("📦 PODMIOTY (Raw):", data); // Tu widać isActive: false
 
-        // TŁUMACZ DANYCH
+        // TŁUMACZ DANYCH (z poprawką)
         const naprawione = data.map(p => ({
           id: p.id || p.Id,
-          // Szukamy nazwy pod różnymi postaciami
           nazwa: p.nazwa || p.Nazwa || p.name || p.Name || 'Bez nazwy',
-          // NIP/REGON (jeśli są)
           nip: p.nip || p.Nip || '-',
           regon: p.regon || p.Regon || '-',
-          // Status (ta sama logika co przy userach)
-          isActive: p.isDisabled !== undefined ? !p.isDisabled : true
+          
+          // --- POPRAWKA W TEJ LINII ---
+          // Czytamy bezpośrednio 'isActive' z API, zamiast szukać 'isDisabled'
+          isActive: p.isActive 
         }));
 
         this.podmioty.set(naprawione);
@@ -44,26 +44,22 @@ export class PodmiotyListComponent implements OnInit {
       error: (err) => console.error("❌ Błąd:", err)
     });
   }
+  
   edytuj(podmiot: any) {
     console.log("✏️ Edycja podmiotu:", podmiot);
     this.chceEdytowac.emit(podmiot);
   }
 
   dodajPodmiot() { this.chceDodacNowy.emit(); }
-  // edytuj(id: any) { console.log("Edycja", id); }
-  // zmienStatus(id: any) { console.log("Status", id); }
-
-  // podmioty-list.component.ts
 
   zmienStatus(podmiot: any) {
-    // 1. Sprawdzamy aktualny stan (pamiętaj, że backend wysyła isDisabled, a my zmapowaliśmy to na isActive)
+    // 1. Sprawdzamy aktualny stan
     if (podmiot.isActive) {
       // --- CHCEMY ZABLOKOWAĆ ---
       if(!confirm(`Czy na pewno chcesz zablokować firmę ${podmiot.nazwa}?`)) return;
 
       this.adminService.disablePodmiot(podmiot.id).subscribe({
         next: () => {
-          // Aktualizacja lokalna (szybka)
           this.zaktualizujLokalnie(podmiot.id, false); 
           console.log('⛔ Podmiot zablokowany');
         },
@@ -72,7 +68,6 @@ export class PodmiotyListComponent implements OnInit {
 
     } else {
       // --- CHCEMY ODBLOKOWAĆ ---
-      // Tu jest ryzyko, bo nie widzieliśmy endpointu /enable w Swaggerze
       this.adminService.enablePodmiot(podmiot.id).subscribe({
         next: () => {
           this.zaktualizujLokalnie(podmiot.id, true);
@@ -80,7 +75,7 @@ export class PodmiotyListComponent implements OnInit {
         },
         error: (err) => {
           console.error(err);
-          alert('Nie udało się odblokować. Czy backend ma endpoint /enable?');
+          alert('Nie udało się odblokować. (Czy backend ma endpoint /enable?)');
         }
       });
     }
