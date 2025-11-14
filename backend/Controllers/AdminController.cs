@@ -57,6 +57,40 @@ namespace backend.Controllers
             return Ok(new { message = "Użytkownik stworzony pomyślnie.", userId = newUser.Id });
         }
 
+        [HttpPut("users/{id}")]
+        public async Task<IActionResult> EditUser(string id, [FromBody] EditUserDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound("Użytkownik nie znaleziony.");
+
+            if (dto.Rola == RolaUzytkownika.Podmiot && !dto.PodmiotId.HasValue)
+            {
+                return BadRequest("PodmiotId jest wymagany dla użytkownika typu Podmiot.");
+            }
+            if (dto.PodmiotId.HasValue)
+            {
+                var podmiotExists = await _context.Podmioty.AnyAsync(p => p.Id == dto.PodmiotId.Value);
+                if (!podmiotExists)
+                {
+                    return BadRequest("Podany Podmiot nie istnieje.");
+                }
+            }
+
+            user.UserName = dto.Username;
+            user.Email = dto.Email;
+            user.Rola = dto.Rola;
+            user.PodmiotId = (dto.Rola == RolaUzytkownika.Podmiot) ? dto.PodmiotId : null;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok(new { message = "Użytkownik zaktualizowany." });
+        }
+
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers()
         {
@@ -110,6 +144,18 @@ namespace backend.Controllers
             return Ok(podmiot);
         }
 
+        [HttpPut("podmioty/{id}")]
+        public async Task<IActionResult> EditPodmiot(int id, [FromBody] EditPodmiotDto dto)
+        {
+            var podmiot = await _context.Podmioty.FindAsync(id);
+            if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
+
+            podmiot.Nazwa = dto.Nazwa;
+            await _context.SaveChangesAsync();
+            
+            return Ok(podmiot);
+        }
+
         [HttpGet("podmioty")]
         public async Task<IActionResult> GetPodmioty()
         {
@@ -126,6 +172,21 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
             return Ok(podmiot);
         }
+
+        // --- NOWY ENDPOINT (ODBLOKOWANIE PODMIOTU) ---
+        [HttpPut("podmioty/{id}/enable")]
+        public async Task<IActionResult> EnablePodmiot(int id)
+        {
+            var podmiot = await _context.Podmioty.FindAsync(id);
+            if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
+
+            // Ustawiamy IsActive z powrotem na true
+            podmiot.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Ok(podmiot);
+        }
+        // --- KONIEC NOWEGO ENDPOINTU ---
+
 
         // --- Zarządzanie Grupami ---
 
@@ -155,7 +216,6 @@ namespace backend.Controllers
             return Ok(grupa);
         }
 
-
         // --- Zarządzanie Powiązaniami ---
 
         [HttpPost("assign-podmiot-to-grupa")]
@@ -177,18 +237,15 @@ namespace backend.Controllers
             return Ok(new { message = "Podmiot przypisany do grupy." });
         }
 
-        // --- NOWY ENDPOINT (KROK 8) ---
         [HttpPost("assign-user-to-grupa")]
         public async Task<IActionResult> AssignGrupaToUser([FromBody] AssignGrupaToUserDto dto)
         {
-            // Pobieramy użytkownika (upewniając się, że dołączamy jego listę grup)
             var user = await _userManager.Users
                 .Include(u => u.Grupy)
                 .FirstOrDefaultAsync(u => u.Id == dto.UserId);
             
             if (user == null) return NotFound("Użytkownik nie znaleziony.");
 
-            // Tylko użytkownicy merytoryczni mogą być dodawani do grup
             if (user.Rola != RolaUzytkownika.MerytorycznyUKNF)
             {
                 return BadRequest("Tylko Użytkownicy Merytoryczni UKNF mogą być przypisywani do grup.");
@@ -197,11 +254,10 @@ namespace backend.Controllers
             var grupa = await _context.Grupy.FindAsync(dto.GrupaId);
             if (grupa == null) return NotFound("Grupa nie znaleziona.");
 
-            // Dodajemy grupę do kolekcji użytkownika
             if (!user.Grupy.Contains(grupa))
             {
                 user.Grupy.Add(grupa);
-                await _userManager.UpdateAsync(user); // Używamy UpdateAsync z UserManager
+                await _userManager.UpdateAsync(user);
             }
 
             return Ok(new { message = "Użytkownik merytoryczny przypisany do grupy." });
