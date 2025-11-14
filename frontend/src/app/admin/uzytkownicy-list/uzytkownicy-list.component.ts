@@ -12,30 +12,6 @@ import { User } from '../../core/models/user.model';
 })
 export class UzytkownicyListComponent implements OnInit {
 
-  // wewnątrz klasy UzytkownicyListComponent
-
-  usunUzytkownika(user: User) {
-    // 1. Zabezpieczenie: Pytamy użytkownika
-    if (!confirm(`⚠️ Czy na pewno chcesz trwale usunąć użytkownika ${user.username}?`)) {
-      return;
-    }
-
-    // 2. Strzał do API
-    this.adminService.deleteUser(user.id).subscribe({
-      next: () => {
-        console.log(`🗑️ Usunięto użytkownika: ${user.id}`);
-        
-        // 3. Aktualizacja lokalna (usuwamy z listy na ekranie)
-        this.uzytkownicy.update(lista => lista.filter(u => u.id !== user.id));
-        
-        alert('Użytkownik został usunięty.');
-      },
-      error: (err) => {
-        console.error("❌ Błąd usuwania:", err);
-        alert("Błąd: Nie udało się usunąć użytkownika (sprawdź czy backend ma metodę DELETE).");
-      }
-    });
-  }
 
   // Dodaj na górze klasy
   @Output() chceEdytowac = new EventEmitter<User>();

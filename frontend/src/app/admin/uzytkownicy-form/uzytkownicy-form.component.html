@@ -36,5 +36,26 @@
       <button type="submit" class="btn-save" [disabled]="form.invalid">Zapisz</button>
     </div>
 
+    @if (form.get('rola')?.value === 'Podmiot') {
+      <div class="form-group" style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
+        
+        <label>Wybierz Podmiot (Firmę) *</label>
+        
+        <select formControlName="podmiotId">
+          <option [ngValue]="null" disabled>Wybierz z listy...</option>
+          
+          @for (podmiot of listaPodmiotow(); track podmiot.id) {
+            <option [ngValue]="podmiot.id">{{ podmiot.nazwa }}</option>
+          }
+        </select>
+        
+        @if (listaPodmiotow().length === 0) {
+           <div style="color: red; font-size: 0.8em; margin-top: 5px;">
+             Brak podmiotów do wyboru. Dodaj je w zakładce "Podmioty".
+           </div>
+        }
+      </div>
+    }
+
   </form>
 </div>
