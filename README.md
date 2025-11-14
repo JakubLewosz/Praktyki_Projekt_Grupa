@@ -71,6 +71,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 <details id="docbackend">
   <summary><h3>💻 Dokumentacja Backend</h3></summary>
   
+
 # 📂 Struktura Projektu: Komunikator UKNF (Backend)
 
 ## 🌳 Katalog główny (backend)
@@ -99,6 +100,8 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
     * `ThreadDetailsDto.cs`
     * `ThreadListDto.cs`
     * `UploadAttachmentResponseDto.cs`
+    * `EditPodmiotDto.cs`
+    * `EditUserDto.cs`
 * **Models/** (Modele encji bazy danych)
     * `ApplicationUser.cs` (Rozszerzenie IdentityUser o Role, PodmiotId i Grupy.)
     * `Podmiot.cs`
@@ -180,9 +183,6 @@ erDiagram
         string TypMIME
     }
 ```
-
-
-  
 </details>
 <details id="docfrontend">
   <summary><h3>🖼️ Dokumentacja Frontend</h3></summary>
