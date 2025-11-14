@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq; // Potrzebne dla .Select()
 
 namespace backend.Controllers
 {
@@ -22,7 +23,6 @@ namespace backend.Controllers
         }
 
         // --- Zarządzanie Użytkownikami ---
-        // (Ta sekcja była poprawna, bo używa _userManager.UpdateAsync)
 
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
@@ -152,7 +152,7 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.Nazwa = dto.Nazwa;
-            await _context.SaveChangesAsync(); // Ten był poprawny
+            await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
@@ -170,11 +170,7 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
             
             podmiot.IsActive = false;
-            
-            // --- POPRAWKA ---
-            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
-            // --- KONIEC POPRAWKI ---
             
             return Ok(podmiot);
         }
@@ -186,11 +182,7 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.IsActive = true;
-            
-            // --- POPRAWKA ---
-            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
-            // --- KONIEC POPRAWKI ---
             
             return Ok(podmiot);
         }
@@ -212,6 +204,32 @@ namespace backend.Controllers
             return Ok(await _context.Grupy.ToListAsync());
         }
         
+        // --- NOWY ENDPOINT ---
+        [HttpGet("grupy/{id}")]
+        public async Task<IActionResult> GetGrupa(int id)
+        {
+            var grupa = await _context.Grupy
+                .Where(g => g.Id == id)
+                // Używamy .Select, aby stworzyć DTO "w locie"
+                // i uniknąć problemów z cyklicznymi odwołaniami
+                .Select(g => new
+                {
+                    g.Id,
+                    g.Nazwa,
+                    g.IsActive,
+                    // Zwracamy listę podmiotów w tej grupie
+                    Podmioty = g.Podmioty.Select(p => new { p.Id, p.Nazwa }),
+                    // Zwracamy listę użytkowników merytorycznych w tej grupie
+                    UzytkownicyMerytoryczni = g.UzytkownicyMerytoryczni.Select(u => new { u.Id, u.UserName })
+                })
+                .FirstOrDefaultAsync();
+
+            if (grupa == null) return NotFound("Grupa nie znaleziona.");
+
+            return Ok(grupa);
+        }
+        // --- KONIEC NOWEGO ENDPOINTU ---
+        
         [HttpPut("grupy/{id}/disable")]
         public async Task<IActionResult> DisableGrupa(int id)
         {
@@ -219,11 +237,7 @@ namespace backend.Controllers
             if (grupa == null) return NotFound("Grupa nie znaleziona.");
 
             grupa.IsActive = false;
-            
-            // --- POPRAWKA ---
-            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
-            // --- KONIEC POPRAWKI ---
             
             return Ok(grupa);
         }
