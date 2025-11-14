@@ -5,6 +5,21 @@
   <form [formGroup]="form" (ngSubmit)="wyslijWiadomosc()">
     
     <div class="form-group">
+      <label for="grupaId">Wysyłaj z ramienia grupy *</label>
+      <select id="grupaId" formControlName="grupaId" class="form-input">
+        <option [ngValue]="null" disabled>Wybierz grupę...</option>
+        @for (grupa of mojeGrupy; track grupa.id) {
+          <option [ngValue]="grupa.id">{{ grupa.nazwa }}</option>
+        }
+      </select>
+      @if (mojeGrupy.length === 0) {
+        <div class="error-message">
+          Nie jesteś przypisany do żadnej grupy (lub trwa ładowanie).
+        </div>
+      }
+    </div>
+
+    <div class="form-group">
       <label for="temat">Temat *</label>
       <input 
         id="temat" 
@@ -28,13 +43,16 @@
         type="button" 
         (click)="anuluj()" 
         class="button button-secondary"
-        [disabled]="isSending()"> Anuluj
+        [disabled]="isSending()">
+        Anuluj
       </button>
       
       <button 
         type="submit" 
         class="button button-primary" 
-        [disabled]="form.invalid || isSending()"> @if (isSending()) {
+        [disabled]="form.invalid || isSending()">
+        
+        @if (isSending()) {
           <span>Wysyłanie...</span>
         } @else {
           <span>Wyślij</span>
@@ -42,4 +60,5 @@
       </button>
     </div>
 
-  </form> </div>
+  </form>
+</div>

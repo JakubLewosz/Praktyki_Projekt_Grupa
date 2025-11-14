@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core'; // <-- Dodajemy signal
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router'; 
+// Używamy Twojej ścieżki do folderu 'wiadomosci'
+import { NowaWiadomoscFormComponent } from '../../wiadomosci/nowa-wiadomosc-form/nowa-wiadomosc-form.component';
+import { SkrzynkaService } from '../../core/services/skrzynka.service'; // Import serwisu
+import { Grupa } from '../../core/models/user.model'; // Import modelu
 
-// Import formularza, który zaraz stworzymy
-import { NowaWiadomoscFormComponent } from '../nowa-wiadomosc-form/nowa-wiadomosc-form.component';
-
-// Definicja typów widoków
 type WidokSkrzynki = 'lista' | 'formularz';
 
 @Component({
@@ -13,17 +13,38 @@ type WidokSkrzynki = 'lista' | 'formularz';
   standalone: true,
   imports: [
     CommonModule, 
-    NowaWiadomoscFormComponent // <-- Dodajemy formularz do importów
+    NowaWiadomoscFormComponent 
   ],
   templateUrl: './skrzynka-panel.component.html',
   styleUrl: './skrzynka-panel.component.css'
 })
 export class SkrzynkaPanelComponent implements OnInit, OnDestroy {
 
-  // === NOWA LOGIKA WIDOKÓW ===
-  widok = signal<WidokSkrzynki>('lista'); // Domyślnie pokazujemy listę
+  widok = signal<WidokSkrzynki>('lista'); 
+  
+  // Przechowujemy listę grup użytkownika
+  mojeGrupy = signal<Grupa[]>([]);
 
-  constructor(private router: Router) {}
+  private router = inject(Router);
+  private skrzynkaService = inject(SkrzynkaService); // Wstrzykujemy serwis
+
+  // Pobieramy grupy przy ładowaniu panelu
+  ngOnInit() {
+    window.addEventListener('storage', this.storageEventListener);
+    this.ladujMojeGrupy(); // Wywołujemy nową funkcję
+  }
+
+  ladujMojeGrupy() {
+    this.skrzynkaService.getMojeGrupy().subscribe({
+      next: (grupy) => {
+        this.mojeGrupy.set(grupy);
+      },
+      error: (err: any) => {
+        console.error("Błąd ładowania grup użytkownika:", err);
+        alert("Nie udało się pobrać Twoich grup. Skontaktuj się z adminem.");
+      }
+    });
+  }
 
   pokazFormularzNowejWiadomosci() {
     this.widok.set('formularz');
@@ -31,27 +52,20 @@ export class SkrzynkaPanelComponent implements OnInit, OnDestroy {
 
   handlePowrotDoListy() {
     this.widok.set('lista');
-    // TODO: W przyszłości tutaj odświeżymy listę wiadomości
+    // TODO: Odświeżyć listę wysłanych wiadomości
   }
-  // === KONIEC LOGIKI WIDOKÓW ===
-
 
   wyloguj() {
     localStorage.removeItem('token');
     this.router.navigate(['/login']);
   }
 
-  // Logika nasłuchiwania (bez zmian)
   storageEventListener = (event: StorageEvent) => {
     if (event.key === 'token') {
       alert('Zostałeś automatycznie wylogowany z powodu akcji w innej karcie.');
       this.router.navigate(['/login']);
     }
   };
-
-  ngOnInit() {
-    window.addEventListener('storage', this.storageEventListener);
-  }
 
   ngOnDestroy() {
     window.removeEventListener('storage', this.storageEventListener);

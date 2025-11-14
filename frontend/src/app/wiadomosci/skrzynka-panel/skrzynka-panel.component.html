@@ -24,7 +24,9 @@
   @if (widok() === 'formularz') {
     
     <app-nowa-wiadomosc-form 
+      [mojeGrupy]="mojeGrupy()"
       (powrot)="handlePowrotDoListy()">
     </app-nowa-wiadomosc-form>
   }
-  </div>
+
+</div>

@@ -1,13 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, of } from 'rxjs'; // Importujemy 'of' do symulacji
-import { delay } from 'rxjs/operators'; // Importujemy 'delay'
+import { Observable, of } from 'rxjs';
+import { Grupa } from '../models/user.model'; // Importujemy model Grupy
 
-// Definicja, jakich danych spodziewa się API
+// Definicja, jakich danych spodziewa się API (z wiadomości backendowca)
 interface NowaWiadomoscPayload {
   temat: string;
   tresc: string;
+  grupaId: number;
+  zalacznikIds: string[]; // lub number[]
 }
 
 @Injectable({
@@ -16,26 +18,23 @@ interface NowaWiadomoscPayload {
 export class SkrzynkaService {
 
   private http = inject(HttpClient);
-  // Endpoint dla tego serwisu (np. /api/Skrzynka)
-  private apiUrl = `${environment.apiUrl}/Skrzynka`;
+  private apiUrl = `${environment.apiUrl}`; // Bazowy URL
 
   constructor() { }
 
-  // --- WYSYŁANIE WIADOMOŚCI ---
-  wyslijNowaWiadomosc(dane: NowaWiadomoscPayload): Observable<any> {
-    
-    // === Na razie robimy SYMULACJĘ ===
-    // Backendowiec musi najpierw stworzyć endpoint POST /api/Skrzynka/wyslij
-    
-    console.warn('SYMULACJA: Wysyłanie nowej wiadomości.', dane);
-    return of({ success: true }).pipe(delay(500)); // Udajemy, że serwer myśli przez 0.5s
-
-    /* // === DOCELOWY KOD (gdy backend będzie gotowy) ===
-    return this.http.post(`${this.apiUrl}/wyslij`, dane);
-    */
+  // === METODA ZAKTUALIZOWANA O ENDPOINT BACKENDU ===
+  getMojeGrupy(): Observable<Grupa[]> {
+    // Używamy endpointa od backendowca: GET /api/me/grupy
+    return this.http.get<Grupa[]>(`${this.apiUrl}/me/grupy`);
   }
 
-  // TODO: W przyszłości dojdą tu inne metody, np.:
-  // getWiadomosci()
-  // getWiadomoscById(id: number)
+
+  // === METODA ZAKTUALIZOWANA O ENDPOINT BACKENDU ===
+  wyslijNowaWiadomosc(dane: NowaWiadomoscPayload): Observable<any> {
+    // Używamy endpointa od backendowca: POST /api/threads/create
+    const url = `${this.apiUrl}/threads/create`;
+    
+    console.log('Wysyłanie do API:', url, dane);
+    return this.http.post(url, dane);
+  }
 }
