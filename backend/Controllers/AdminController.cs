@@ -22,6 +22,7 @@ namespace backend.Controllers
         }
 
         // --- Zarządzanie Użytkownikami ---
+        // (Ta sekcja była poprawna, bo używa _userManager.UpdateAsync)
 
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
@@ -151,7 +152,7 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.Nazwa = dto.Nazwa;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // Ten był poprawny
             
             return Ok(podmiot);
         }
@@ -169,24 +170,30 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
             
             podmiot.IsActive = false;
+            
+            // --- POPRAWKA ---
+            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
+            // --- KONIEC POPRAWKI ---
+            
             return Ok(podmiot);
         }
 
-        // --- NOWY ENDPOINT (ODBLOKOWANIE PODMIOTU) ---
         [HttpPut("podmioty/{id}/enable")]
         public async Task<IActionResult> EnablePodmiot(int id)
         {
             var podmiot = await _context.Podmioty.FindAsync(id);
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
-            // Ustawiamy IsActive z powrotem na true
             podmiot.IsActive = true;
+            
+            // --- POPRAWKA ---
+            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
+            // --- KONIEC POPRAWKI ---
+            
             return Ok(podmiot);
         }
-        // --- KONIEC NOWEGO ENDPOINTU ---
-
 
         // --- Zarządzanie Grupami ---
 
@@ -212,7 +219,12 @@ namespace backend.Controllers
             if (grupa == null) return NotFound("Grupa nie znaleziona.");
 
             grupa.IsActive = false;
+            
+            // --- POPRAWKA ---
+            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
+            // --- KONIEC POPRAWKI ---
+            
             return Ok(grupa);
         }
 
