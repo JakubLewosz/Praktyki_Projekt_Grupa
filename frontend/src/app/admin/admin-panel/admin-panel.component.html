@@ -24,55 +24,64 @@
 
   <div class="content">
     
+    <!-- ================= SEKCJA PODMIOTY ================= -->
     @if (widokGlowny() === 'podmioty') {
       
       @if (widokPodrzedny() === 'list') {
-        <app-podmioty-list (chceDodacNowy)="pokazFormularz()"></app-podmioty-list>
+        <!-- Dodajemy #podmiotList, by móc wywołać odświeżenie -->
+        <app-podmioty-list 
+          #podmiotList 
+          (chceDodacNowy)="pokazFormularz()"
+          (chceEdytowac)="rozpocznijEdycjePodmiotu($event)">
+        </app-podmioty-list>
       }
       
       @if (widokPodrzedny() === 'form') {
-        <app-podmiot-form (powrot)="pokazListe()"></app-podmiot-form>
+        <!-- Używamy jednej funkcji 'handlePowrot' do obsługi powrotu -->
+        <app-podmiot-form 
+          [podmiotDoEdycji]="edytowanyPodmiot()" 
+          (powrot)="handlePowrotZFormularza()">
+        </app-podmiot-form>
       }
     }
 
+    <!-- ================= SEKCJA GRUPY ================= -->
     @if (widokGlowny() === 'grupy') {
       
       @if (widokPodrzedny() === 'list') {
-        <app-grupy-list (chceDodacNowy)="pokazFormularz()"></app-grupy-list>
+        <app-grupy-list 
+          #grupaList
+          (chceDodacNowy)="pokazFormularz()">
+        </app-grupy-list>
       }
       
       @if (widokPodrzedny() === 'form') {
-        <app-grupa-form (powrot)="pokazListe()"></app-grupa-form>
+        <app-grupa-form 
+          (powrot)="handlePowrotZFormularza()">
+        </app-grupa-form>
       }
     }
 
+    <!-- ================= SEKCJA UŻYTKOWNICY ================= -->
     @if (widokGlowny() === 'uzytkownicy') {
       
       @if (widokPodrzedny() === 'list') {
         <app-uzytkownicy-list 
+          #userList
           (chceDodacNowy)="pokazFormularz()"
           (chceEdytowac)="rozpocznijEdycjeUzytkownika($event)"> 
-          </app-uzytkownicy-list>
+        </app-uzytkownicy-list>
       }
       
       @if (widokPodrzedny() === 'form') {
         <app-uzytkownicy-form 
           [userDoEdycji]="edytowanyUzytkownik()" 
-          (powrot)="zamknijFormularz()">
-          </app-uzytkownicy-form>
+          (powrot)="handlePowrotZFormularza()">
+        </app-uzytkownicy-form>
       }
     }
-    @if (widokPodrzedny() === 'list') {
-  <app-podmioty-list 
-    (chceDodacNowy)="pokazFormularz()"
-    (chceEdytowac)="rozpocznijEdycjePodmiotu($event)"> </app-podmioty-list>
-  }
 
-  @if (widokPodrzedny() === 'form') {
-    <app-podmiot-form 
-      [podmiotDoEdycji]="edytowanyPodmiot()"  (powrot)="zamknijFormularzPodmiotu()">
-    </app-podmiot-form>
-  }
+    <!-- USUNĄŁEM STĄD ZDUPLIKOWANE BLOKI KODU -->
 
   </div>
 </div>

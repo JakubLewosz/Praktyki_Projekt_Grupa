@@ -1,7 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ViewChild } from '@angular/core'; // 👈 Dodaj ViewChild
 import { CommonModule } from '@angular/common';
 
-// Importujemy WSZYSTKIE komponenty, które stworzyłeś
+// Importujemy WSZYSTKIE komponenty
 import { PodmiotyListComponent } from '../podmioty-list/podmioty-list.component';
 import { PodmiotFormComponent } from '../podmiot-form/podmiot-form.component';
 import { GrupyListComponent } from '../grupy-list/grupy-list.component';
@@ -29,64 +29,64 @@ type WidokPodrzedny = 'list' | 'form';
   styleUrl: './admin-panel.component.css'
 })
 export class AdminPanelComponent {
-  // Dwa sygnały, które kontrolują WSZYSTKO
+  
+  // --- SYGNAŁY DO PRZEŁĄCZANIA WIDOKÓW ---
   widokGlowny = signal<WidokGlowny>('podmioty');
   widokPodrzedny = signal<WidokPodrzedny>('list');
 
-  // Funkcja do zmiany głównej zakładki (Podmioty, Grupy, Użytkownicy)
+  // --- SYGNAŁY DO PRZEKAZYWANIA DANYCH EDYCJI ---
+  edytowanyUzytkownik = signal<User | null>(null);
+  edytowanyPodmiot = signal<any>(null); // Użyj modelu Podmiot, jeśli masz
+
+  // --- REFERENCJE DO KOMPONENTÓW LIST (do odświeżania) ---
+  @ViewChild('podmiotList') podmiotListRef?: PodmiotyListComponent;
+  @ViewChild('grupaList') grupaListRef?: GrupyListComponent;
+  @ViewChild('userList') userListRef?: UzytkownicyListComponent;
+
+  // --- LOGIKA PRZEŁĄCZANIA WIDOKÓW ---
+
   zmienWidokGlowny(widok: WidokGlowny) {
     this.widokGlowny.set(widok);
-    this.widokPodrzedny.set('list'); // Zawsze wracaj do listy po zmianie zakładki
+    this.widokPodrzedny.set('list'); 
   }
 
-  // Funkcja do pokazywania formularza (dla dowolnej zakładki)
   pokazFormularz() {
+    // Czyścimy dane edycji, gdy klikamy "Dodaj nowy"
+    this.edytowanyUzytkownik.set(null);
+    this.edytowanyPodmiot.set(null);
     this.widokPodrzedny.set('form');
   }
 
-  // Funkcja do pokazywania listy (dla dowolnej zakładki)
-  pokazListe() {
-    this.widokPodrzedny.set('list');
+  // --- KLUCZOWA POPRAWKA: Ta funkcja odświeża listę po powrocie z formularza ---
+  handlePowrotZFormularza() {
+    this.widokPodrzedny.set('list'); // 1. Wróć do widoku listy
+
+    // 2. Rozkaż odpowiedniej liście, aby załadowała się na nowo
+    // (Używamy setTimeout, aby dać Angularowi czas na przełączenie widoku)
+    setTimeout(() => {
+      const aktualnyWidok = this.widokGlowny();
+      
+      if (aktualnyWidok === 'podmioty' && this.podmiotListRef) {
+        this.podmiotListRef.zaladujPodmioty();
+      }
+      if (aktualnyWidok === 'grupy' && this.grupaListRef) {
+        this.grupaListRef.zaladujGrupy();
+      }
+      if (aktualnyWidok === 'uzytkownicy' && this.userListRef) {
+        this.userListRef.pobierzUzytkownikow();
+      }
+    }, 0);
   }
 
-  // Dodaj nowe pole (sygnał lub zmienną) na edytowanego użytkownika
-  edytowanyUzytkownik = signal<User | null>(null);
-
-  // Funkcja obsługująca zdarzenie z listy
+  // --- LOGIKA EDYCJI (bez zmian, już działała) ---
+  
   rozpocznijEdycjeUzytkownika(user: User) {
-    console.log("2. [ADMIN] Odebrałem usera:", user); // <--- CZY TO WIDZISZ?
     this.edytowanyUzytkownik.set(user);
     this.widokPodrzedny.set('form');
-    console.log("3. [ADMIN] Przełączyłem widok na 'form'");   // Przełączamy widok na formularz
   }
 
-  // Funkcja czyszcząca po powrocie z formularza
-  zamknijFormularz() {
-    this.edytowanyUzytkownik.set(null); // Czyścimy
-    this.widokPodrzedny.set('list');    // Wracamy do listy
+  rozpocznijEdycjePodmiotu(podmiot: any) {
+    this.edytowanyPodmiot.set(podmiot); 
+    this.widokPodrzedny.set('form');
   }
-
-  // admin-panel.component.ts
-  // ... inne sygnały ...
-
-    // 👇 1. Miejsce na przechowywanie edytowanej firmy
-    edytowanyPodmiot = signal<any>(null);
-
-    // 👇 2. Funkcja startująca edycję
-    rozpocznijEdycjePodmiotu(podmiot: any) {
-      this.edytowanyPodmiot.set(podmiot); // Zapisz dane
-      this.widokPodrzedny.set('form');    // Pokaż formularz
-    }
-
-    // 👇 3. Funkcja czyszcząca (po zapisie lub anulowaniu)
-    zamknijFormularzPodmiotu() {
-      this.edytowanyPodmiot.set(null);
-      this.widokPodrzedny.set('list');
-    }
-    
-    // 👇 4. Zmodyfikuj pokazFormularz, żeby czyścił dane (przy dodawaniu nowego)
-  //   pokazFormularz() {
-  //     this.edytowanyPodmiot.set(null); // Reset
-  //     this.widokPodrzedny.set('form');
-  // }
 }
