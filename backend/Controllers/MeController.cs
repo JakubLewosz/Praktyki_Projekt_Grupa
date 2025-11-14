@@ -34,7 +34,6 @@ namespace backend.Controllers
                 return Unauthorized();
             }
 
-            // Pobieramy użytkownika, aby sprawdzić jego ROLĘ i PODMIOTID
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
@@ -45,15 +44,13 @@ namespace backend.Controllers
 
             if (user.Rola == RolaUzytkownika.Podmiot)
             {
-                // Dla Podmiotu: znajdź jego Podmiot, a następnie Grupy tego Podmiotu
                 if (!user.PodmiotId.HasValue)
                 {
-                    // Użytkownik Podmiotu nieprzypisany do niczego - zwraca pustą listę
                     return Ok(new List<object>()); 
                 }
 
                 var podmiot = await _context.Podmioty
-                    .Include(p => p.Grupy) // Kluczowe: Dołączamy Grupy
+                    .Include(p => p.Grupy)
                     .FirstOrDefaultAsync(p => p.Id == user.PodmiotId.Value);
 
                 if (podmiot != null)
@@ -63,10 +60,8 @@ namespace backend.Controllers
             }
             else if (user.Rola == RolaUzytkownika.MerytorycznyUKNF)
             {
-                // Dla Merytorycznego: znajdź Grupy przypisane bezpośrednio do niego
-                // Musimy pobrać użytkownika jeszcze raz, tym razem z jego Grupami
                 var merytorycznyUser = await _userManager.Users
-                    .Include(u => u.Grupy) // Kluczowe: Dołączamy Grupy
+                    .Include(u => u.Grupy)
                     .FirstOrDefaultAsync(u => u.Id == userId);
                 
                 if (merytorycznyUser != null)
@@ -74,11 +69,9 @@ namespace backend.Controllers
                     userGroups = merytorycznyUser.Grupy;
                 }
             }
-            // Admin i inni domyślnie dostaną pustą listę
-
-            // Zwracamy listę w prostym formacie { id, nazwa }
+            
             var result = userGroups
-                .Where(g => g.IsActive) // Zwracamy tylko aktywne grupy
+                .Where(g => g.IsActive)
                 .Select(g => new 
                 {
                     g.Id,
