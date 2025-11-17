@@ -25,7 +25,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 1: ZARZĄDZANIE UŻYTKOWNIKAMI
+        // SEKCJA 1: ZARZĄDZANIE UŻYTKOWNIKAMI
         // ==========================================
 
         [HttpPost("users")]
@@ -37,15 +37,12 @@ namespace backend.Controllers
             }
             if (dto.PodmiotId.HasValue)
             {
-                var podmiotExists = await _context.Podmioty.AnyAsync(p => p.Id == dto.PodmiotId.Value);
-                if (!podmiotExists)
+                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
+                if (podmiot == null)
                 {
                     return BadRequest(new { message = "Podany Podmiot nie istnieje." });
                 }
-                
-                // Opcjonalnie: sprawdzenie czy podmiot jest aktywny
-                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
-                if (podmiot != null && !podmiot.IsActive)
+                if (!podmiot.IsActive)
                 {
                     return BadRequest(new { message = "Nie można przypisać użytkownika do nieaktywnego podmiotu." });
                 }
@@ -145,7 +142,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 2: ZARZĄDZANIE PODMIOTAMI
+        // SEKCJA 2: ZARZĄDZANIE PODMIOTAMI
         // ==========================================
 
         [HttpPost("podmioty")]
@@ -191,17 +188,35 @@ namespace backend.Controllers
             return Ok(await query.ToListAsync());
         }
 
+        // --- KASKADOWE BLOKOWANIE (ZMODYFIKOWANE) ---
         [HttpPut("podmioty/{id}/disable")]
         public async Task<IActionResult> DisablePodmiot(int id)
         {
+            // 1. Znajdź podmiot
             var podmiot = await _context.Podmioty.FindAsync(id);
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
             
+            // 2. Zablokuj podmiot
             podmiot.IsActive = false;
+
+            // 3. Znajdź wszystkich użytkowników tego podmiotu
+            var uzytkownicyDoBlokady = await _context.Users
+                .Where(u => u.PodmiotId == id)
+                .ToListAsync();
+
+            // 4. Zablokuj użytkowników (ustawiając blokadę na 100 lat)
+            foreach (var user in uzytkownicyDoBlokady)
+            {
+                // Używamy mechanizmu Identity: LockoutEnd
+                user.LockoutEnd = DateTimeOffset.Now.AddYears(100);
+            }
+
+            // 5. Zapisz wszystko w jednej transakcji
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
+        // --- KONIEC ZMIAN ---
 
         [HttpPut("podmioty/{id}/enable")]
         public async Task<IActionResult> EnablePodmiot(int id)
@@ -210,13 +225,18 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.IsActive = true;
+            
+            // UWAGA: Tutaj NIE odblokowujemy automatycznie użytkowników.
+            // Zazwyczaj admin woli ręcznie decydować, kto wraca do pracy.
+            // Jeśli chcesz odblokowywać też userów, daj znać.
+
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
 
         // ==========================================
-        // SEKJA 3: ZARZĄDZANIE GRUPAMI
+        // SEKCJA 3: ZARZĄDZANIE GRUPAMI
         // ==========================================
 
         [HttpPost("grupy")]
@@ -267,7 +287,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 4: ZARZĄDZANIE POWIĄZANIAMI
+        // SEKCJA 4: ZARZĄDZANIE POWIĄZANIAMI
         // ==========================================
 
         [HttpPost("assign-podmiot-to-grupa")]
@@ -341,7 +361,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 5: SKRZYNKA ADMINA (WIADOMOŚCI)
+        // SEKCJA 5: SKRZYNKA ADMINA (WIADOMOŚCI)
         // ==========================================
 
         [HttpGet("wiadomosci")]
