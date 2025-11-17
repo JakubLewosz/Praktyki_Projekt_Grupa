@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
@@ -22,7 +24,9 @@ namespace backend.Controllers
             _context = context;
         }
 
-        // --- Zarządzanie Użytkownikami ---
+        // ==========================================
+        // SEKJA 1: ZARZĄDZANIE UŻYTKOWNIKAMI
+        // ==========================================
 
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
@@ -33,14 +37,15 @@ namespace backend.Controllers
             }
             if (dto.PodmiotId.HasValue)
             {
-                // Sprawdzamy, czy podmiot istnieje I czy jest aktywny
-                // Nie chcemy pozwolić na przypisanie użytkownika do zablokowanego podmiotu
-                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
-                if (podmiot == null)
+                var podmiotExists = await _context.Podmioty.AnyAsync(p => p.Id == dto.PodmiotId.Value);
+                if (!podmiotExists)
                 {
                     return BadRequest(new { message = "Podany Podmiot nie istnieje." });
                 }
-                if (!podmiot.IsActive)
+                
+                // Opcjonalnie: sprawdzenie czy podmiot jest aktywny
+                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
+                if (podmiot != null && !podmiot.IsActive)
                 {
                     return BadRequest(new { message = "Nie można przypisać użytkownika do nieaktywnego podmiotu." });
                 }
@@ -139,8 +144,9 @@ namespace backend.Controllers
             return Ok(new { message = "Użytkownik włączony."});
         }
 
-
-        // --- Zarządzanie Podmiotami ---
+        // ==========================================
+        // SEKJA 2: ZARZĄDZANIE PODMIOTAMI
+        // ==========================================
 
         [HttpPost("podmioty")]
         public async Task<IActionResult> CreatePodmiot([FromBody] CreatePodmiotRequestDto dto)
@@ -172,23 +178,18 @@ namespace backend.Controllers
             return Ok(podmiot);
         }
 
-        // --- ZMODYFIKOWANY ENDPOINT (FILTROWANIE) ---
         [HttpGet("podmioty")]
         public async Task<IActionResult> GetPodmioty([FromQuery] string status = "active")
         {
             IQueryable<Podmiot> query = _context.Podmioty;
 
-            // Domyślnie (status="active") zwracamy tylko aktywne podmioty.
-            // Frontend użyje tego do dropdowna przy tworzeniu usera.
             if (status != "all")
             {
                 query = query.Where(p => p.IsActive);
             }
-            // Jeśli status="all", zwracamy wszystkie (dla listy w panelu admina)
 
             return Ok(await query.ToListAsync());
         }
-        // --- KONIEC MODYFIKACJI ---
 
         [HttpPut("podmioty/{id}/disable")]
         public async Task<IActionResult> DisablePodmiot(int id)
@@ -214,7 +215,9 @@ namespace backend.Controllers
             return Ok(podmiot);
         }
 
-        // --- Zarządzanie Grupami ---
+        // ==========================================
+        // SEKJA 3: ZARZĄDZANIE GRUPAMI
+        // ==========================================
 
         [HttpPost("grupy")]
         public async Task<IActionResult> CreateGrupa([FromBody] CreateGrupaRequestDto dto)
@@ -263,7 +266,9 @@ namespace backend.Controllers
             return Ok(grupa);
         }
 
-        // --- Zarządzanie Powiązaniami ---
+        // ==========================================
+        // SEKJA 4: ZARZĄDZANIE POWIĄZANIAMI
+        // ==========================================
 
         [HttpPost("assign-podmiot-to-grupa")]
         public async Task<IActionResult> AssignPodmiotToGrupa([FromBody] AssignPodmiotRequestDto dto)
@@ -333,6 +338,118 @@ namespace backend.Controllers
             }
 
             return Ok(new { message = "Użytkownik merytoryczny przypisany do grupy." });
+        }
+
+        // ==========================================
+        // SEKJA 5: SKRZYNKA ADMINA (WIADOMOŚCI)
+        // ==========================================
+
+        [HttpGet("wiadomosci")]
+        public async Task<IActionResult> GetAllThreads()
+        {
+            var threads = await _context.Watki
+                .Include(w => w.Grupa)
+                .Include(w => w.Wiadomosci)
+                    .ThenInclude(m => m.Autor)
+                    .ThenInclude(a => a.Podmiot)
+                .OrderByDescending(w => w.Wiadomosci.Max(m => m.DataWyslania))
+                .ToListAsync();
+
+            var dtos = threads.Select(w => 
+            {
+                var ostatniaWiadomosc = w.Wiadomosci.OrderByDescending(m => m.DataWyslania).FirstOrDefault();
+                var pierwszaWiadomosc = w.Wiadomosci.OrderBy(m => m.DataWyslania).FirstOrDefault();
+
+                string nadawca = "Nieznany";
+                if (pierwszaWiadomosc != null)
+                {
+                    if (pierwszaWiadomosc.Autor.Rola == RolaUzytkownika.Podmiot && pierwszaWiadomosc.Autor.Podmiot != null)
+                        nadawca = pierwszaWiadomosc.Autor.Podmiot.Nazwa;
+                    else if (pierwszaWiadomosc.Autor.Rola == RolaUzytkownika.MerytorycznyUKNF)
+                        nadawca = $"Merytoryczny ({pierwszaWiadomosc.Autor.UserName})";
+                    else
+                        nadawca = "UKNF (Admin)";
+                }
+
+                bool isUnread = ostatniaWiadomosc != null && ostatniaWiadomosc.Autor.Rola == RolaUzytkownika.Podmiot;
+
+                return new AdminThreadListDto
+                {
+                    Id = w.Id,
+                    Temat = w.Temat,
+                    NazwaGrupy = w.Grupa.Nazwa,
+                    NazwaNadawcy = nadawca,
+                    DataOstatniejWiadomosci = ostatniaWiadomosc?.DataWyslania ?? DateTime.MinValue,
+                    CzyNieprzeczytany = isUnread
+                };
+            }).ToList();
+
+            return Ok(dtos);
+        }
+
+        [HttpGet("wiadomosci/{id}")]
+        public async Task<IActionResult> GetThreadDetails(int id)
+        {
+            var watek = await _context.Watki
+                .Include(w => w.Grupa)
+                .Include(w => w.Wiadomosci)
+                    .ThenInclude(m => m.Autor)
+                    .ThenInclude(a => a.Podmiot)
+                .Include(w => w.Wiadomosci)
+                    .ThenInclude(m => m.Zalaczniki)
+                .FirstOrDefaultAsync(w => w.Id == id);
+
+            if (watek == null) return NotFound("Wątek nie istnieje.");
+
+            var dto = new AdminThreadDetailsDto
+            {
+                Id = watek.Id,
+                Temat = watek.Temat,
+                NazwaGrupy = watek.Grupa.Nazwa,
+                Wiadomosci = watek.Wiadomosci.OrderBy(m => m.DataWyslania).Select(m => new AdminMessageDto
+                {
+                    Id = m.Id,
+                    Tresc = m.Tresc,
+                    DataWyslania = m.DataWyslania,
+                    AutorNazwa = (m.Autor.Rola == RolaUzytkownika.Podmiot) 
+                        ? (m.Autor.Podmiot?.Nazwa ?? "Podmiot") 
+                        : "UKNF",
+                    IsAdmin = m.Autor.Rola != RolaUzytkownika.Podmiot,
+                    Zalaczniki = m.Zalaczniki.Select(z => new AttachmentDto
+                    {
+                        Id = z.Id,
+                        OryginalnaNazwa = z.OryginalnaNazwa,
+                        SciezkaPliku = z.SciezkaPliku,
+                        TypMIME = z.TypMIME,
+                        Rozmiar = z.Rozmiar
+                    }).ToList()
+                }).ToList()
+            };
+
+            return Ok(dto);
+        }
+
+        [HttpPost("wiadomosci/{id}/odpowiedz")]
+        public async Task<IActionResult> ReplyAsAdmin(int id, [FromBody] AdminReplyDto dto)
+        {
+            var adminUser = await _userManager.GetUserAsync(User);
+            if (adminUser == null) return Unauthorized();
+
+            var watek = await _context.Watki.FindAsync(id);
+            if (watek == null) return NotFound("Wątek nie istnieje.");
+
+            var wiadomosc = new Wiadomosc
+            {
+                Tresc = dto.Tresc,
+                AutorId = adminUser.Id,
+                WatekId = watek.Id,
+                DataWyslania = DateTime.Now
+            };
+
+            _context.Wiadomosci.Add(wiadomosc);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Odpowiedź wysłana." });
         }
     }
 }

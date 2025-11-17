@@ -38,7 +38,7 @@ namespace backend.Controllers
                 return Unauthorized(new { message = "Nieprawidłowa nazwa użytkownika lub hasło." });
             }
 
-            // 3. Generuj token
+            // 3. Generuj token (teraz zawiera isActive!)
             var authResponse = GenerateJwtToken(user);
 
             return Ok(authResponse);
@@ -47,12 +47,19 @@ namespace backend.Controllers
         // Metoda pomocnicza do generowania tokenu
         private AuthResponseDto GenerateJwtToken(ApplicationUser user)
         {
+            // --- OBLICZANIE STATUSU isActive ---
+            // Użytkownik jest aktywny, jeśli nie ma daty blokady LUB data blokady już minęła.
+            bool isActive = user.LockoutEnd == null || user.LockoutEnd <= DateTimeOffset.Now;
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Role, user.Rola.ToString()) // Nasza niestandardowa rola!
+                new Claim(ClaimTypes.Role, user.Rola.ToString()),
+                // --- NOWY CLAIM ---
+                // Dodajemy flagę isActive ("true" lub "false")
+                new Claim("isActive", isActive.ToString().ToLower())
             };
 
             // Jeśli użytkownik jest typu Podmiot, dodaj ID podmiotu do tokenu

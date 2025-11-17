@@ -1,4 +1,4 @@
-import { Component, signal, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, signal, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../core/services/admin.service';
 import { Grupa } from '../../core/models/user.model'; // Używamy globalnego modelu
@@ -10,55 +10,41 @@ import { Grupa } from '../../core/models/user.model'; // Używamy globalnego mod
   templateUrl: './grupy-list.component.html',
   styleUrl: './grupy-list.component.css'
 })
-export class GrupyListComponent implements OnInit { // Dodajemy OnInit
+export class GrupyListComponent implements OnInit { 
   
-  @Output() chceDodacNowy = new EventEmitter<void>();
+  private adminService = inject(AdminService);
   
-  // Zmieniamy 'edytuj' na 'zarzadzaj' i typujemy poprawnym modelem
-  @Output() chceZarzadzac = new EventEmitter<Grupa>();
+  // === POPRAWKA NAZW, ABY PASOWAŁY DO RODZICA ===
+  @Output() dodajNowy = new EventEmitter<void>(); // Zamiast 'chceDodacNowy'
+  @Output() zarzadzajGrupa = new EventEmitter<Grupa>(); // Zamiast 'chceZarzadzac'
 
-  // Zaczynamy z pustą listą, którą wypełni API
   grupy = signal<Grupa[]>([]);
 
-  // Wstrzykujemy serwis
-  constructor(private adminService: AdminService) {}
-
-  // Pobieramy dane przy starcie komponentu
   ngOnInit() {
     this.zaladujGrupy();
   }
 
   zaladujGrupy() {
     this.adminService.getGrupy().subscribe({
-      next: (data: any[]) => {
-        console.log("📦 GRUPY (Raw):", data);
-
-        // Tłumacz danych (na wszelki wypadek)
-        const naprawione = data.map(g => ({
-          id: g.id || g.Id,
-          nazwa: g.nazwa || g.Nazwa || g.name || g.Name || 'Bez nazwy',
-          isActive: g.isActive !== undefined ? g.isActive : (g.isDisabled !== undefined ? !g.isDisabled : true),
-          // Backend nie zwraca liczby podmiotów w liście, więc sami to ustawimy
-          liczbaPodmiotow: g.podmioty ? g.podmioty.length : 0 
-        }));
-
-        this.grupy.set(naprawione);
+      next: (data: Grupa[]) => {
+        // Usuwamy "tłumacz danych", bo serwis zwraca już poprawny typ 'Grupa[]'
+        this.grupy.set(data);
+        console.log("✅ Dane grup pobrane:", data);
       },
-      error: (err) => console.error("❌ Błąd:", err)
+      error: (err: any) => console.error("❌ Błąd pobierania grup:", err)
     });
   }
 
-  // Zmieniamy nazwę funkcji, żeby pasowała do logiki
+  // Ta funkcja wysyła poprawny event 'dodajNowy'
   dodajGrupe() {
-    this.chceDodacNowy.emit();
+    this.dodajNowy.emit();
   }
 
-  // Ta funkcja zastępuje 'edytujGrupe'
+  // Ta funkcja wysyła poprawny event 'zarzadzajGrupa'
   zarzadzaj(grupa: Grupa) {
     console.log(`UI (Grupy): Kliknięto 'Zarządzaj' dla: ${grupa.nazwa}`);
-    this.chceZarzadzac.emit(grupa);
+    this.zarzadzajGrupa.emit(grupa);
   }
 
-  // Usuwamy 'wylaczGrupe', bo API (ze Swaggera) nie ma endpointu /disable dla Grup
-  // Jeśli backendowiec go dorobi, możemy tu wrócić i dodać tę funkcję.
+  // Na razie nie mamy logiki zmiany statusu dla grup
 }

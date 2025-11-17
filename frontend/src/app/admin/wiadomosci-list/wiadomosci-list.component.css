@@ -1,0 +1,92 @@
+/* Style dla listy wiadomości */
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.header-bar h2 {
+  margin: 0;
+  color: #333;
+}
+
+.table-container {
+  width: 100%;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow: hidden; /* Ważne dla border-radius */
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.data-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-table td {
+  color: #333;
+}
+
+/* Wyróżnienie nieprzeczytanych */
+.data-table tr.nieprzeczytany td {
+  font-weight: 700;
+  color: #111;
+}
+.data-table tr.nieprzeczytany .temat-cell {
+  color: #0056b3; /* Niebieski dla tematu */
+}
+
+.status-badge {
+  background-color: #007aff;
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Teksty ładowania / braku danych */
+.loading-text,
+.no-data-text {
+  padding: 3rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #777;
+}
+
+/* Style przycisków */
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+.button-secondary {
+  background-color: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+}
+.button-secondary:hover {
+  background-color: #e5e5e5;
+}
