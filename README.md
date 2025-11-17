@@ -77,7 +77,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
 ## 🌳 Katalog główny (backend)
 
 * **Controllers/** (Kontrolery API - logika biznesowa i routing)
-    * `AdminController.cs` (Zarządzanie użytkownikami, grupami, podmiotami. Wymaga roli AdminUKNF.)
+    * `AdminController.cs` (Zarządzanie użytkownikami, grupami, podmiotami. Wymaga roli AdminUKNF.Skrzynka Odbiorcza dla Adminów)
     * `AttachmentsController.cs` (Obsługa przesyłania plików i zapis metadanych.)
     * `AuthController.cs` (Logowanie i generowanie tokenów JWT.)
     * `ThreadsController.cs` (Główna logika komunikacyjna: lista, szczegóły, tworzenie wątków i odpowiedzi.)
@@ -86,6 +86,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
     * `ApplicationDbContext.cs` (Kontekst bazy danych, dziedziczący z IdentityDbContext.)
     * `DataSeeder.cs` (Mechanizm inicjalizacji danych, np. tworzenie konta Admina.)
 * **DTOs/** (Data Transfer Objects - modele do komunikacji z API)
+    * `AdminThreadDtos.cs`
     * `AssignGrupaToUserDto.cs`
     * `AssignPodmiotRequestDto.cs`
     * `AttachmentDto.cs`

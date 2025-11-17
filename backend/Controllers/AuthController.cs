@@ -25,20 +25,17 @@ namespace backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginDto)
         {
-            // 1. Znajdź użytkownika po nazwie (lub emailu)
             var user = await _userManager.FindByNameAsync(loginDto.Username);
             if (user == null)
             {
                 user = await _userManager.FindByEmailAsync(loginDto.Username);
             }
 
-            // 2. Sprawdź, czy użytkownik istnieje i czy hasło jest poprawne
             if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
                 return Unauthorized(new { message = "Nieprawidłowa nazwa użytkownika lub hasło." });
             }
 
-            // 3. Generuj token (teraz zawiera isActive!)
             var authResponse = GenerateJwtToken(user);
 
             return Ok(authResponse);
@@ -48,37 +45,45 @@ namespace backend.Controllers
         private AuthResponseDto GenerateJwtToken(ApplicationUser user)
         {
             // --- OBLICZANIE STATUSU isActive ---
-            // Użytkownik jest aktywny, jeśli nie ma daty blokady LUB data blokady już minęła.
             bool isActive = user.LockoutEnd == null || user.LockoutEnd <= DateTimeOffset.Now;
 
+            // 1. Tworzymy listę STANDARDOWYCH claimów (tekstowych)
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Role, user.Rola.ToString()),
-                // --- NOWY CLAIM ---
-                // Dodajemy flagę isActive ("true" lub "false")
-                new Claim("isActive", isActive.ToString().ToLower())
+                new Claim(ClaimTypes.Role, user.Rola.ToString())
+                // UWAGA: Usunąłem stąd isActive, aby nie zostało zamienione na string "true"
             };
 
-            // Jeśli użytkownik jest typu Podmiot, dodaj ID podmiotu do tokenu
             if (user.Rola == RolaUzytkownika.Podmiot && user.PodmiotId.HasValue)
             {
                 claims.Add(new Claim("podmiotId", user.PodmiotId.Value.ToString()));
             }
 
+            // 2. Konfiguracja klucza i podpisu
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiration = DateTime.Now.AddHours(8); // Token ważny 8 godzin
+            var expiration = DateTime.Now.AddHours(8);
 
-            var token = new JwtSecurityToken(
+            // 3. RĘCZNE TWORZENIE PAYLOADU (To jest kluczowa zmiana)
+            // Dzięki temu możemy dodać typy inne niż string (np. boolean)
+            var payload = new JwtPayload(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: expiration,
-                signingCredentials: creds
+                notBefore: null,
+                expires: expiration
             );
+
+            // --- WYMUSZENIE TYPU BOOLEAN ---
+            // Dodajemy isActive bezpośrednio do słownika payloadu jako bool.
+            // Serializer JSON teraz poprawnie zapisze to jako true/false (bez cudzysłowów).
+            payload["isActive"] = isActive;
+
+            // 4. Sklejenie nagłówka i payloadu w token
+            var token = new JwtSecurityToken(new JwtHeader(creds), payload);
 
             return new AuthResponseDto
             {

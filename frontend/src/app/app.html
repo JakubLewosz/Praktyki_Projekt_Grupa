@@ -1,1 +1,30 @@
-<router-outlet></router-outlet>
+<!-- 
+  Sprawdzamy sygnał 'isBlocked()' z app.component.ts 
+-->
+
+<ng-container *ngIf="isBlocked()">
+  
+  <!-- EKRAN BLOKADY -->
+  <div class="blocked-screen-container">
+    <div class="blocked-box">
+      <h1>Dostęp zablokowany</h1>
+      <p>Twoje konto zostało wyłączone przez administratora.</p>
+      <p>Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji.</p>
+      
+      <!-- Przycisk "Wyloguj" wywołuje metodę z app.component.ts -->
+      <button (click)="logout()" class="logout-button">
+        Wyloguj
+      </button>
+    </div>
+  </div>
+
+</ng-container>
+
+
+<!-- 
+  Jeśli użytkownik NIE jest zablokowany (isBlocked() === false), 
+  pokazujemy normalnie router-outlet.
+  Router-outlet sam zdecyduje, czy pokazać stronę logowania 
+  (jeśli nikt nie jest zalogowany), czy skrzynkę odbiorczą.
+-->
+<router-outlet *ngIf="!isBlocked()"></router-outlet>
