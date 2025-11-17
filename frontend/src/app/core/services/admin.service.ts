@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
-// ZMIANA: Dodany import HttpParams
 import { HttpClient, HttpParams } from '@angular/common/http'; 
 import { Observable, of } from 'rxjs'; 
 import { delay } from 'rxjs/operators'; 
 import { environment } from '../../../environments/environment';
-// Importujemy modele, których potrzebujemy
 import { User, Podmiot, Grupa, LoginRequest, AuthResponse } from '../models/user.model';
 
 // === INTERFEJS DLA LISTY WIADOMOŚCI ===
@@ -56,29 +54,16 @@ export class AdminService {
     return this.http.get<User[]>(`${this.apiUrl}/users`);
   }
 
-  //
-  // --- ZAKTUALIZOWANA METODA ---
-  //
-  /**
-   * Pobiera listę podmiotów.
-   * @param status 'active' (domyślnie) zwraca tylko aktywne.
-   * 'all' zwraca wszystkie (aktywne i nieaktywne).
-   */
   getPodmioty(status: 'all' | 'active' = 'active'): Observable<Podmiot[]> {
     
     let params = new HttpParams();
     
-    // Ustawiamy parametr 'status' tylko wtedy, gdy NIE JEST 'active'
-    // (bo backend i tak domyślnie użyje 'active')
     if (status === 'all') {
       params = params.set('status', 'all');
     }
 
-    // Używamy { params } w opcjach zapytania i silnego typowania Podmiot[]
     return this.http.get<Podmiot[]>(`${this.apiUrl}/podmioty`, { params });
   }
-  // --- KONIEC ZAKTUALIZOWANEJ METODY ---
-  //
 
   getGrupy(): Observable<Grupa[]> {
     return this.http.get<Grupa[]>(`${this.apiUrl}/grupy`);
@@ -102,33 +87,46 @@ export class AdminService {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, dane);
   }
 
+  //
+  // --- POPRAWKA: Wracamy do PUT (zgodnie z info od backendowca) ---
+  //
   disableUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/users/${id}/disable`, {});
+    return this.http.put<void>(`${this.apiUrl}/users/${id}/disable`, {});
   }
 
+  //
+  // --- POPRAWKA: Wracamy do PUT (zgodnie z info od backendowca) ---
+  //
   enableUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/users/${id}/enable`, {});
+    return this.http.put<void>(`${this.apiUrl}/users/${id}/enable`, {});
   }
 
   updatePodmiot(id: number, dane: { nazwa: string, nip: string, regon: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/podmioty/${id}`, dane);
   }
 
+  //
+  // --- POPRAWKA: Zmieniam na PUT (zgodnie z Twoim starym Swaggerem) ---
+  //
   disablePodmiot(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/podmioty/${id}/disable`, {});
+    return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/disable`, {});
   }
 
+  //
+  // --- POPRAWKA: Zmieniam na PUT (zgodnie z Twoim starym Swaggerem) ---
+  //
   enablePodmiot(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
+    return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
   }
 
-  // --- 4. ZARZĄDZANIE CZŁONKAMI GRUPY ---
-  getGrupaDetails(id: number): Observable<Grupa> {
+  // --- ZARZĄDZANIE CZŁONKAMI GRUPY ---
+
+  getGrupaById(id: number): Observable<Grupa> {
     return this.http.get<Grupa>(`${this.apiUrl}/grupy/${id}`);
   }
 
-  addPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/grupy/${grupaId}/podmioty`, { podmiotId });
+  assignPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/assign-podmiot-to-grupa`, { podmiotId, grupaId });
   }
 
   removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
@@ -137,16 +135,15 @@ export class AdminService {
 
   // === 5. SYSTEM WIADOMOŚCI (ADMIN) ===
   
-  // Pobieranie listy wszystkich wątków
   getWiadomosci(): Observable<WiadomoscWatek[]> {
     console.warn('SYMULACJA: Pobieranie listy wiadomości dla admina.');
     const symulowaneWiadomosci: WiadomoscWatek[] = [
       {
         id: "watek_123",
-        temat: "asdasd", // Temat z Twojego testu
+        temat: "asdasd", 
         nazwaNadawcy: "sigma (z Mbank)",
-        nazwaGrupy: "Banki", // Grupa z Twojego testu
-        dataOstatniejWiadomosci: new Date().toISOString(), // Data jest teraz
+        nazwaGrupy: "Banki", 
+        dataOstatniejWiadomosci: new Date().toISOString(), 
         czyNieprzeczytany: true
       },
       {
@@ -161,7 +158,6 @@ export class AdminService {
     return of(symulowaneWiadomosci).pipe(delay(500)); 
   }
 
-  // Pobieranie zawartości jednego wątku
   getWatek(id: string): Observable<Watek> {
     console.warn(`SYMULACJA: Pobieranie wątku o ID: ${id}`);
 
@@ -173,20 +169,11 @@ export class AdminService {
         {
           id: "msg_1",
           watekId: "watek_123",
-          tresc: "asda", // Pierwsza wiadomość od sigmy
-          dataWyslania: new Date(Date.now() - 5 * 60000).toISOString(), // 5 minut temu
+          tresc: "asda", 
+          dataWyslania: new Date(Date.now() - 5 * 60000).toISOString(), 
           nazwaNadawcy: "sigma (z Mbank)",
           czyAdmin: false
         }
-        // Można dodać symulowaną odpowiedź admina dla testów
-        // {
-        //   id: "msg_2",
-        //   watekId: "watek_123",
-        //   tresc: "Otrzymałem wiadomość, dziękuję.",
-        //   dataWyslania: new Date().toISOString(), // Teraz
-        //   nazwaNadawcy: "Admin (UKNF)",
-        //   czyAdmin: true
-        // }
       ]
     };
     return of(symulowanyWatek).pipe(delay(500)); 
