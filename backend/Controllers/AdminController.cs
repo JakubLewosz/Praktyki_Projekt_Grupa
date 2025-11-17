@@ -23,7 +23,7 @@ namespace backend.Controllers
         }
 
         // --- Zarządzanie Użytkownikami ---
-        // (bez zmian)
+
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
         {
@@ -33,10 +33,16 @@ namespace backend.Controllers
             }
             if (dto.PodmiotId.HasValue)
             {
-                var podmiotExists = await _context.Podmioty.AnyAsync(p => p.Id == dto.PodmiotId.Value);
-                if (!podmiotExists)
+                // Sprawdzamy, czy podmiot istnieje I czy jest aktywny
+                // Nie chcemy pozwolić na przypisanie użytkownika do zablokowanego podmiotu
+                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
+                if (podmiot == null)
                 {
                     return BadRequest(new { message = "Podany Podmiot nie istnieje." });
+                }
+                if (!podmiot.IsActive)
+                {
+                    return BadRequest(new { message = "Nie można przypisać użytkownika do nieaktywnego podmiotu." });
                 }
             }
             
@@ -136,7 +142,6 @@ namespace backend.Controllers
 
         // --- Zarządzanie Podmiotami ---
 
-        // POPRAWIONE
         [HttpPost("podmioty")]
         public async Task<IActionResult> CreatePodmiot([FromBody] CreatePodmiotRequestDto dto)
         {
@@ -144,15 +149,14 @@ namespace backend.Controllers
             { 
                 Nazwa = dto.Nazwa, 
                 IsActive = true,
-                NIP = dto.NIP,      // Zapisujemy NIP
-                REGON = dto.REGON   // Zapisujemy REGON
+                NIP = dto.NIP,
+                REGON = dto.REGON
             };
             _context.Podmioty.Add(podmiot);
             await _context.SaveChangesAsync();
             return Ok(podmiot);
         }
 
-        // POPRAWIONE
         [HttpPut("podmioty/{id}")]
         public async Task<IActionResult> EditPodmiot(int id, [FromBody] EditPodmiotDto dto)
         {
@@ -160,21 +164,31 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.Nazwa = dto.Nazwa;
-            podmiot.NIP = dto.NIP;      // Zapisujemy NIP
-            podmiot.REGON = dto.REGON;  // Zapisujemy REGON
+            podmiot.NIP = dto.NIP;
+            podmiot.REGON = dto.REGON;
             
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
 
+        // --- ZMODYFIKOWANY ENDPOINT (FILTROWANIE) ---
         [HttpGet("podmioty")]
-        public async Task<IActionResult> GetPodmioty()
+        public async Task<IActionResult> GetPodmioty([FromQuery] string status = "active")
         {
-            // Ten endpoint nie wymagał zmian, ponieważ zwraca całe obiekty Podmiot
-            // a teraz obiekty te zawierają NIP i REGON
-            return Ok(await _context.Podmioty.ToListAsync());
+            IQueryable<Podmiot> query = _context.Podmioty;
+
+            // Domyślnie (status="active") zwracamy tylko aktywne podmioty.
+            // Frontend użyje tego do dropdowna przy tworzeniu usera.
+            if (status != "all")
+            {
+                query = query.Where(p => p.IsActive);
+            }
+            // Jeśli status="all", zwracamy wszystkie (dla listy w panelu admina)
+
+            return Ok(await query.ToListAsync());
         }
+        // --- KONIEC MODYFIKACJI ---
 
         [HttpPut("podmioty/{id}/disable")]
         public async Task<IActionResult> DisablePodmiot(int id)
@@ -217,7 +231,6 @@ namespace backend.Controllers
             return Ok(await _context.Grupy.ToListAsync());
         }
         
-        // POPRAWIONE
         [HttpGet("grupy/{id}")]
         public async Task<IActionResult> GetGrupa(int id)
         {
@@ -228,7 +241,6 @@ namespace backend.Controllers
                     g.Id,
                     g.Nazwa,
                     g.IsActive,
-                    // Dodajemy NIP i REGON do odpowiedzi
                     Podmioty = g.Podmioty.Select(p => new { p.Id, p.Nazwa, p.NIP, p.REGON }),
                     UzytkownicyMerytoryczni = g.UzytkownicyMerytoryczni.Select(u => new { u.Id, u.UserName })
                 })
