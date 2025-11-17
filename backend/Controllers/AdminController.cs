@@ -25,7 +25,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 1: ZARZĄDZANIE UŻYTKOWNIKAMI
+        // SEKCJA 1: ZARZĄDZANIE UŻYTKOWNIKAMI
         // ==========================================
 
         [HttpPost("users")]
@@ -37,15 +37,12 @@ namespace backend.Controllers
             }
             if (dto.PodmiotId.HasValue)
             {
-                var podmiotExists = await _context.Podmioty.AnyAsync(p => p.Id == dto.PodmiotId.Value);
-                if (!podmiotExists)
+                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
+                if (podmiot == null)
                 {
                     return BadRequest(new { message = "Podany Podmiot nie istnieje." });
                 }
-                
-                // Opcjonalnie: sprawdzenie czy podmiot jest aktywny
-                var podmiot = await _context.Podmioty.FindAsync(dto.PodmiotId.Value);
-                if (podmiot != null && !podmiot.IsActive)
+                if (!podmiot.IsActive)
                 {
                     return BadRequest(new { message = "Nie można przypisać użytkownika do nieaktywnego podmiotu." });
                 }
@@ -145,7 +142,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 2: ZARZĄDZANIE PODMIOTAMI
+        // SEKCJA 2: ZARZĄDZANIE PODMIOTAMI
         // ==========================================
 
         [HttpPost("podmioty")]
@@ -191,32 +188,50 @@ namespace backend.Controllers
             return Ok(await query.ToListAsync());
         }
 
+        // --- KASKADOWE BLOKOWANIE (PODMIOT + PRACOWNICY) ---
         [HttpPut("podmioty/{id}/disable")]
         public async Task<IActionResult> DisablePodmiot(int id)
         {
             var podmiot = await _context.Podmioty.FindAsync(id);
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
             
+            // 1. Zablokuj podmiot
             podmiot.IsActive = false;
+
+            // 2. Znajdź i zablokuj użytkowników
+            var uzytkownicyDoBlokady = await _context.Users
+                .Where(u => u.PodmiotId == id)
+                .ToListAsync();
+
+            foreach (var user in uzytkownicyDoBlokady)
+            {
+                user.LockoutEnd = DateTimeOffset.Now.AddYears(100);
+            }
+
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
 
+        // --- POJEDYNCZE ODBLOKOWANIE (TYLKO PODMIOT) ---
         [HttpPut("podmioty/{id}/enable")]
         public async Task<IActionResult> EnablePodmiot(int id)
         {
             var podmiot = await _context.Podmioty.FindAsync(id);
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
+            // 1. Odblokuj TYLKO podmiot
             podmiot.IsActive = true;
+            
+            // 2. Użytkownicy pozostają zablokowani (zgodnie z wymaganiem)
+
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
 
         // ==========================================
-        // SEKJA 3: ZARZĄDZANIE GRUPAMI
+        // SEKCJA 3: ZARZĄDZANIE GRUPAMI
         // ==========================================
 
         [HttpPost("grupy")]
@@ -267,7 +282,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 4: ZARZĄDZANIE POWIĄZANIAMI
+        // SEKCJA 4: ZARZĄDZANIE POWIĄZANIAMI
         // ==========================================
 
         [HttpPost("assign-podmiot-to-grupa")]
@@ -341,7 +356,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // SEKJA 5: SKRZYNKA ADMINA (WIADOMOŚCI)
+        // SEKCJA 5: SKRZYNKA ADMINA (WIADOMOŚCI)
         // ==========================================
 
         [HttpGet("wiadomosci")]

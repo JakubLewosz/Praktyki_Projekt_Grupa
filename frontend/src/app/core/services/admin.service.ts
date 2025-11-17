@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-// ZMIANA: Dodany import HttpParams
 import { HttpClient, HttpParams } from '@angular/common/http'; 
 import { Observable, of } from 'rxjs'; 
 import { delay } from 'rxjs/operators'; 
@@ -56,29 +55,16 @@ export class AdminService {
     return this.http.get<User[]>(`${this.apiUrl}/users`);
   }
 
-  //
-  // --- ZAKTUALIZOWANA METODA ---
-  //
-  /**
-   * Pobiera listę podmiotów.
-   * @param status 'active' (domyślnie) zwraca tylko aktywne.
-   * 'all' zwraca wszystkie (aktywne i nieaktywne).
-   */
   getPodmioty(status: 'all' | 'active' = 'active'): Observable<Podmiot[]> {
     
     let params = new HttpParams();
     
-    // Ustawiamy parametr 'status' tylko wtedy, gdy NIE JEST 'active'
-    // (bo backend i tak domyślnie użyje 'active')
     if (status === 'all') {
       params = params.set('status', 'all');
     }
 
-    // Używamy { params } w opcjach zapytania i silnego typowania Podmiot[]
     return this.http.get<Podmiot[]>(`${this.apiUrl}/podmioty`, { params });
   }
-  // --- KONIEC ZAKTUALIZOWANEJ METODY ---
-  //
 
   getGrupy(): Observable<Grupa[]> {
     return this.http.get<Grupa[]>(`${this.apiUrl}/grupy`);
@@ -102,33 +88,46 @@ export class AdminService {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, dane);
   }
 
+  //
+  // --- POPRAWKA: Wracamy do PUT (zgodnie z info od backendowca) ---
+  //
   disableUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/users/${id}/disable`, {});
+    return this.http.put<void>(`${this.apiUrl}/users/${id}/disable`, {});
   }
 
+  //
+  // --- POPRAWKA: Wracamy do PUT (zgodnie z info od backendowca) ---
+  //
   enableUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/users/${id}/enable`, {});
+    return this.http.put<void>(`${this.apiUrl}/users/${id}/enable`, {});
   }
 
   updatePodmiot(id: number, dane: { nazwa: string, nip: string, regon: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/podmioty/${id}`, dane);
   }
 
+  //
+  // --- POPRAWKA: Zmieniam na PUT (zgodnie z Twoim starym Swaggerem) ---
+  //
   disablePodmiot(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/podmioty/${id}/disable`, {});
+    return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/disable`, {});
   }
 
+  //
+  // --- POPRAWKA: Zmieniam na PUT (zgodnie z Twoim starym Swaggerem) ---
+  //
   enablePodmiot(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
+    return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
   }
 
-  // --- 4. ZARZĄDZANIE CZŁONKAMI GRUPY ---
-  getGrupaDetails(id: number): Observable<Grupa> {
+  // --- ZARZĄDZANIE CZŁONKAMI GRUPY ---
+
+  getGrupaById(id: number): Observable<Grupa> {
     return this.http.get<Grupa>(`${this.apiUrl}/grupy/${id}`);
   }
 
-  addPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/grupy/${grupaId}/podmioty`, { podmiotId });
+  assignPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/assign-podmiot-to-grupa`, { podmiotId, grupaId });
   }
 
   removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
@@ -137,7 +136,6 @@ export class AdminService {
 
   // === 5. SYSTEM WIADOMOŚCI (POPRAWIONY) ===
   
-  // Ten był już poprawny
   getWiadomosci(): Observable<WiadomoscWatek[]> {
     console.log('API: Pobieranie listy wiadomości dla admina.');
     return this.http.get<WiadomoscWatek[]>(`${this.apiUrl}/wiadomosci`);

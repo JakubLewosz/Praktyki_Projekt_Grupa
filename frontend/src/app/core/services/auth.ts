@@ -11,7 +11,7 @@ export interface DecodedToken {
   nameid: string; // Zazwyczaj ID użytkownika
   email: string;
   role: string; // Rola (np. "Admin", "Podmiot")
-  isActive: boolean; // 👈 KLUCZOWE POLE
+  isActive: boolean | string; // 👈 KLUCZOWE POLE
   exp: number;
   iss: string;
   aud: string;

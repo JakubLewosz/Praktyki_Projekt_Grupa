@@ -1,16 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Observable, of } from 'rxjs';
-import { Grupa } from '../models/user.model'; // Importujemy model Grupy
-
-// Definicja, jakich danych spodziewa się API (z wiadomości backendowca)
-interface NowaWiadomoscPayload {
-  temat: string;
-  tresc: string;
-  grupaId: number;
-  zalacznikIds: string[]; // lub number[]
-}
+import { Grupa } from '../models/user.model';
+import { Watek, WiadomoscWatek } from './admin.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,23 +11,46 @@ interface NowaWiadomoscPayload {
 export class SkrzynkaService {
 
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}`; // Bazowy URL
+  
+  // Ten adres jest poprawny dla wątków
+  private threadsApiUrl = `${environment.apiUrl}/Threads`; 
+  
+  // === POPRAWKA ===
+  // Dodajemy poprawny adres dla endpointów '/api/me'
+  private meApiUrl = `${environment.apiUrl}/me`; 
+  // (Usunęliśmy stary 'grupyApiUrl')
 
-  constructor() { }
+  // === METODY, KTÓRE JUŻ MIELIŚMY ===
 
-  // === METODA ZAKTUALIZOWANA O ENDPOINT BACKENDU ===
-  getMojeGrupy(): Observable<Grupa[]> {
-    // Używamy endpointa od backendowca: GET /api/me/grupy
-    return this.http.get<Grupa[]>(`${this.apiUrl}/me/grupy`);
+  /**
+   * 1. Pobieranie grup do formularza
+   * (POPRAWKA: Używa teraz 'meApiUrl' i woła GET /api/me/grupy)
+   */
+  getGrupyDlaUzytkownika(): Observable<Grupa[]> {
+    return this.http.get<Grupa[]>(`${this.meApiUrl}/grupy`); 
   }
 
+  // Tworzenie zupełnie nowego wątku
+  // (Ten jest poprawny, używa /api/Threads)
+  createThread(temat: string, tresc: string, grupaId: number): Observable<any> {
+    const payload = { temat, tresc, grupaId, zalacznikIds: [] };
+    return this.http.post<any>(`${this.threadsApiUrl}/create`, payload);
+  }
 
-  // === METODA ZAKTUALIZOWANA O ENDPOINT BACKENDU ===
-  wyslijNowaWiadomosc(dane: NowaWiadomoscPayload): Observable<any> {
-    // Używamy endpointa od backendowca: POST /api/threads/create
-    const url = `${this.apiUrl}/threads/create`;
-    
-    console.log('Wysyłanie do API:', url, dane);
-    return this.http.post(url, dane);
+  // === METODY DLA WĄTKÓW (Te są już poprawne) ===
+
+  // Pobiera listę wątków użytkownika (GET /api/Threads)
+  getMojeWatki(): Observable<WiadomoscWatek[]> {
+    return this.http.get<WiadomoscWatek[]>(this.threadsApiUrl); 
+  }
+
+  // Pobiera zawartość jednego wątku (GET /api/Threads/{id})
+  getWatekDetails(id: number): Observable<Watek> {
+    return this.http.get<Watek>(`${this.threadsApiUrl}/${id}`);
+  }
+
+  // Wysyła odpowiedź użytkownika (POST /api/Threads/{id}/reply)
+  wyslijOdpowiedz(watekId: number, tresc: string): Observable<any> {
+    return this.http.post(`${this.threadsApiUrl}/${watekId}/reply`, { tresc });
   }
 }
