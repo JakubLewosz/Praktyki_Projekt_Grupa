@@ -113,3 +113,51 @@ erDiagram
         string TypMIME
     }
 ```
+### ⚙️ Zależności Wstrzyknięte (Constructor)
+
+| Serwis | Rola |
+| :--- | :--- |
+| `ApplicationDbContext` | Dostęp do bazy danych. |
+| `UserManager<ApplicationUser>` | Zarządzanie tożsamością użytkowników. |
+| **`ThreadService`** | **NOWOŚĆ:** Zawiera logikę biznesową związaną z wątkami (np. tworzenie nowych wątków z odpowiedzi, pobieranie załączników). |
+
+---
+
+### 1. Lista Wątków (`GET /api/threads`)
+
+Logika pobierania listy wątków jest ściśle uzależniona od roli użytkownika.
+
+| Rola Użytkownika | Kryterium Filtrowania | Widziane Wątki |
+| :--- | :--- | :--- |
+| **Podmiot** | Wątki należące do Grupy, do której Podmiot jest przypisany **ORAZ** wątki, w których użytkownik **brał udział** (`Wiadomosci.Any(m => m.AutorId == user.Id)`). | Własna korespondencja oraz komunikaty grupowe. |
+| **Merytoryczny UKNF** | Wątki należące do **Grup, do których Merytoryczny jest przypisany**. | Korespondencja z Podmiotami nadzorowanymi przez niego. |
+| **AdminUKNF** | **ZABLOKOWANE (`Forbid`):** Administrator musi używać dedykowanego endpointu `GET /api/Admin/wiadomosci`. |
+
+---
+
+### 2. Szczegóły Wątku (`GET /api/threads/{id}`)
+
+Weryfikacja uprawnień jest wymagana dla wszystkich ról:
+
+* **Autoryzacja Podmiotu:** Użytkownik Podmiotu może zobaczyć wątek, jeśli **należy do Grupy Podmiotu** (jest to Broadcast) **LUB jest autorem wiadomości** w danym wątku.
+* **Autoryzacja Merytorycznego:** Użytkownik Merytoryczny może zobaczyć wątek, jeśli **wątek należy do Grupy, do której jest przypisany**.
+
+---
+
+### 3. Odpowiedź na Wątek (`POST /api/threads/{id}/reply`)
+
+Ta metoda zawiera **kluczową logikę biznesową** obsługującą scenariusz "Odpowiedź na Broadcast".
+
+| Użytkownik | Stan Wątku | Akcja Logiczna (Obsługa `ThreadService`) | Zwracany Wynik |
+| :--- | :--- | :--- | :--- |
+| **Podmiot** | Odpowiada na **Broadcast** (wiadomość wysłaną przez UKNF do grupy). | **Automatyczne utworzenie NOWEGO wątku** między Podmiotem a UKNF. | Nowy `watekId`. |
+| **Podmiot/Merytoryczny** | Odpowiada na **istniejący wątek konwersacyjny** (nie-Broadcast). | Standardowe dodanie wiadomości do istniejącego wątku. | Istniejący `watekId`. |
+
+---
+
+### 4. Tworzenie Wątku i Broadcast
+
+| Metoda | Ścieżka | Uprawnienia | Opis |
+| :--- | :--- | :--- | :--- |
+| **`POST`** | `/api/threads/create` | `[Authorize(Roles = "Podmiot")]` | Użytkownik Podmiotu może stworzyć nowy wątek, pod warunkiem, że jest przypisany do Grupy docelowej. |
+| **`POST`** | `/api/threads/broadcast` | `[Authorize(Roles = "MerytorycznyUKNF")]` | Użytkownik Merytoryczny może stworzyć **jednostronny komunikat (Broadcast)**, który trafi do wszystkich Podmiotów w Grupie docelowej. |
