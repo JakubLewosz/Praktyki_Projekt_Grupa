@@ -81,6 +81,7 @@ Pracownik UKNF prowadzący korespondencję, przypisany do konkretnych grup podmi
     * `AttachmentsController.cs` (Obsługa przesyłania plików i zapis metadanych.)
     * `AuthController.cs` (Logowanie i generowanie tokenów JWT.)
     * `ThreadsController.cs` (Główna logika komunikacyjna: lista, szczegóły, tworzenie wątków i odpowiedzi.)
+    * `MeController.cs` (Zarządzanie danymi i kontekstem zalogowanego użytkownika - np. pobieranie list grup.)
 * **Data/** (Warstwa dostępu do danych)
     * `ApplicationDbContext.cs` (Kontekst bazy danych, dziedziczący z IdentityDbContext.)
     * `DataSeeder.cs` (Mechanizm inicjalizacji danych, np. tworzenie konta Admina.)
