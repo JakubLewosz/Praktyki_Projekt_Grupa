@@ -17,22 +17,25 @@ export class GrupaFormComponent {
   private fb = inject(FormBuilder);
   private adminService = inject(AdminService);
 
-  // Formularz: Tylko nazwa jest wymagana
   form = this.fb.group({
-    nazwa: ['', [Validators.required, Validators.minLength(3)]]
+    nazwa: ['', Validators.required]
   });
 
   zapisz() {
     if (this.form.invalid) return;
 
-    this.adminService.createGrupa(this.form.value).subscribe({
+    // === POPRAWKA (Błąd 7) ===
+    // Serwis oczekuje 'string', a nie obiekt { nazwa: '...' }
+    const nazwaGrupy = this.form.value.nazwa!; 
+
+    this.adminService.createGrupa(nazwaGrupy).subscribe({
       next: () => {
-        alert('Grupa została utworzona!');
+        alert('Nowa grupa została utworzona!');
         this.powrot.emit();
       },
-      error: (err) => {
-        console.error('❌ Błąd:', err);
-        alert('Nie udało się utworzyć grupy.');
+      error: (err: any) => {
+        console.error("Błąd tworzenia grupy:", err);
+        alert("Wystąpił błąd: " + err.message);
       }
     });
   }

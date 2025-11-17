@@ -1,6 +1,7 @@
-import { Component, signal, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, signal, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../core/services/admin.service';
+import { Podmiot } from '../../core/models/user.model'; // <-- WAŻNE: Dodaj ten import
 
 @Component({
   selector: 'app-podmioty-list',
@@ -11,12 +12,14 @@ import { AdminService } from '../../core/services/admin.service';
 })
 export class PodmiotyListComponent implements OnInit {
   
-  @Output() chceDodacNowy = new EventEmitter<void>();
-  podmioty = signal<any[]>([]); // Używamy any[], żeby elastycznie mapować
+  private adminService = inject(AdminService);
+  
+  // === POPRAWKA NAZW, ABY PASOWAŁY DO RODZICA ===
+  @Output() dodajNowy = new EventEmitter<void>(); // Zamiast 'chceDodacNowy'
+  @Output() startEdycji = new EventEmitter<Podmiot>(); // Zamiast 'chceEdytowac'
 
-  @Output() chceEdytowac = new EventEmitter<any>();
-
-  constructor(private adminService: AdminService) {}
+  // Używamy typu 'Podmiot[]' zamiast 'any[]'
+  podmioty = signal<Podmiot[]>([]); 
 
   ngOnInit() {
     this.zaladujPodmioty();
@@ -24,64 +27,44 @@ export class PodmiotyListComponent implements OnInit {
 
   zaladujPodmioty() {
     this.adminService.getPodmioty().subscribe({
-      next: (data: any[]) => {
-        console.log("📦 PODMIOTY (Raw):", data); // Tu widać isActive: false
-
-        // TŁUMACZ DANYCH (z poprawką)
-        const naprawione = data.map(p => ({
-          id: p.id || p.Id,
-          nazwa: p.nazwa || p.Nazwa || p.name || p.Name || 'Bez nazwy',
-          nip: p.nip || p.Nip || '-',
-          regon: p.regon || p.Regon || '-',
-          
-          // --- POPRAWKA W TEJ LINII ---
-          // Czytamy bezpośrednio 'isActive' z API, zamiast szukać 'isDisabled'
-          isActive: p.isActive 
-        }));
-
-        this.podmioty.set(naprawione);
+      next: (data: Podmiot[]) => {
+        // Nie potrzebujemy już "tłumacza danych", serwis zwraca poprawny typ
+        this.podmioty.set(data); 
       },
-      error: (err) => console.error("❌ Błąd:", err)
+      error: (err: any) => console.error("Błąd pobierania podmiotów:", err)
     });
   }
   
-  edytuj(podmiot: any) {
+  // Ta funkcja musi wysyłać event 'startEdycji'
+  edytuj(podmiot: Podmiot) {
     console.log("✏️ Edycja podmiotu:", podmiot);
-    this.chceEdytowac.emit(podmiot);
+    this.startEdycji.emit(podmiot);
   }
 
-  dodajPodmiot() { this.chceDodacNowy.emit(); }
+  // Ta funkcja musi wysyłać event 'dodajNowy'
+  dodajPodmiot() { 
+    this.dodajNowy.emit(); 
+  }
 
-  zmienStatus(podmiot: any) {
-    // 1. Sprawdzamy aktualny stan
+  // Typujemy 'podmiot' jako 'Podmiot'
+  zmienStatus(podmiot: Podmiot) {
     if (podmiot.isActive) {
-      // --- CHCEMY ZABLOKOWAĆ ---
       if(!confirm(`Czy na pewno chcesz zablokować firmę ${podmiot.nazwa}?`)) return;
-
       this.adminService.disablePodmiot(podmiot.id).subscribe({
-        next: () => {
-          this.zaktualizujLokalnie(podmiot.id, false); 
-          console.log('⛔ Podmiot zablokowany');
-        },
-        error: (err) => alert('Błąd blokowania: ' + err.message)
+        next: () => this.zaktualizujLokalnie(podmiot.id, false),
+        error: (err: any) => alert('Błąd blokowania: ' + err.message)
       });
-
     } else {
-      // --- CHCEMY ODBLOKOWAĆ ---
-      this.adminService.enablePodmiot(podmiot.id).subscribe({
-        next: () => {
-          this.zaktualizujLokalnie(podmiot.id, true);
-          console.log('✅ Podmiot odblokowany');
-        },
-        error: (err) => {
-          console.error(err);
-          alert('Nie udało się odblokować. (Czy backend ma endpoint /enable?)');
-        }
+      if(!confirm(`Czy na pewno chcesz odblokować firmę ${podmiot.nazwa}?`)) return;
+      // Zakładamy, że 'enablePodmiot' jest już poprawione w serwisie
+      this.adminService.enablePodmiot(podmiot.id).subscribe({ 
+        next: () => this.zaktualizujLokalnie(podmiot.id, true),
+        error: (err: any) => alert('Błąd odblokowywania: ' + err.message)
       });
     }
   }
 
-  // Funkcja pomocnicza do odświeżania widoku bez przeładowania
+  // Funkcja pomocnicza bez zmian
   private zaktualizujLokalnie(id: number, nowyStatus: boolean) {
     this.podmioty.update(lista => 
       lista.map(p => p.id === id ? { ...p, isActive: nowyStatus } : p)

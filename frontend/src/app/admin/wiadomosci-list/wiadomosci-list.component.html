@@ -1,0 +1,45 @@
+<div class="header-bar">
+  <h2>Skrzynka Odbiorcza (Admin)</h2>
+</div>
+
+<div class="table-container">
+
+  @if (isLoading()) {
+    <p class="loading-text">Ładowanie wiadomości...</p>
+  } @else if (wiadomosci().length === 0) {
+    <p class="no-data-text">Nie masz żadnych wiadomości.</p>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Temat</th>
+          <th>Nadawca</th>
+          <th>Grupa</th>
+          <th>Data</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (watek of wiadomosci(); track watek.id) {
+          <tr [class.nieprzeczytany]="watek.czyNieprzeczytany">
+            <td>
+              @if (watek.czyNieprzeczytany) {
+                <span class="status-badge">Nowa</span>
+              }
+            </td>
+            <td class="temat-cell">{{ watek.temat }}</td>
+            <td>{{ watek.nazwaNadawcy }}</td>
+            <td>{{ watek.nazwaGrupy }}</td>
+            <td>{{ watek.dataOstatniejWiadomosci | date: 'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              <button class="button button-secondary" (click)="onZobaczWatek(watek.id)">
+                Zobacz
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

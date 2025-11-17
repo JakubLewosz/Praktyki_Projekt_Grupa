@@ -1,50 +1,43 @@
-<div class="form-container">
-  <h2>Zarządzaj Grupą: {{ aktualnaGrupa()?.nazwa }}</h2>
-  
-  <fieldset class="form-section">
-    <legend>Dodaj podmiot do grupy</legend>
-    <div class="add-member-form">
-      
-      <select 
-        class="form-input"
-        [ngModel]="wybranyPodmiotId()" 
-        (ngModelChange)="wybranyPodmiotId.set($event)">
-      <option [ngValue]="null" disabled>Wybierz podmiot...</option>
-        @for (p of dostepnePodmioty(); track p.id) {
-          <option [value]="p.id">{{ p.nazwa }}</option>
+<div class="details-container">
+  <button (click)="anuluj()" class="button-powrot">&larr; Wróć do listy grup</button>
+  <h2>Zarządzaj Grupą: {{ aktualnaGrupa()?.nazwa || grupa.nazwa }}</h2>
+
+  <div class="form-section">
+    <h3>Dodaj podmiot do grupy</h3>
+    <form [formGroup]="form" (ngSubmit)="dodajCzlonka()" class="dodaj-form">
+      <select formControlName="podmiotId" class="form-input">
+        <option [ngValue]="null" disabled>Wybierz podmiot...</option>
+        @for (p of wszystkiePodmioty(); track p.id) {
+          <option [ngValue]="p.id">{{ p.nazwa }}</option>
         }
       </select>
       
-      <button (click)="dodajCzlonka()" class="button button-primary" [disabled]="!wybranyPodmiotId()">
+      <button type="submit" class="button button-primary" [disabled]="form.invalid">
         Dodaj
       </button>
-    </div>
-    @if (dostepnePodmioty().length === 0) {
-      <p style="font-size: 0.9em; color: gray; margin-top: 5px;">
-        Wszystkie aktywne podmioty są już przypisane do tej grupy.
-      </p>
+    </form>
+    @if (wszystkiePodmioty().length === 0) {
+      <p class="info-text">Ładowanie podmiotów...</p>
     }
-  </fieldset>
+  </div>
 
-  <fieldset class="form-section">
-    <legend>Obecni członkowie ({{ aktualnaGrupa()?.podmioty?.length || 0 }})</legend>
-    
-    <div class="member-list">
-      @for (czlonek of aktualnaGrupa()?.podmioty; track czlonek.id) {
-        <div class="member-item">
-          <span>{{ czlonek.nazwa }}</span>
-          <button (click)="usunCzlonka(czlonek.id)" class="button-wyloguj">
-            Usuń
-          </button>
-        </div>
-      }
-      @if (!aktualnaGrupa()?.podmioty?.length) {
-        <p>Ta grupa nie ma jeszcze żadnych członków.</p>
-      }
-    </div>
-  </fieldset>
-
-  <div class="form-actions">
-    <button type="button" class="button button-secondary" (click)="anuluj()">Wróć do listy</button>
+  <div class="lista-section">
+    <h3>Obecni członkowie ({{ aktualnaGrupa()?.podmioty?.length || 0 }})</h3>
+    @if (!aktualnaGrupa()) {
+      <p class="info-text">Ładowanie danych...</p>
+    } @else if (aktualnaGrupa()?.podmioty?.length === 0) {
+      <p class="info-text">Ta grupa nie ma jeszcze żadnych członków.</p>
+    } @else {
+      <ul class="lista-czlonkow">
+        @for (p of aktualnaGrupa()?.podmioty; track p.id) {
+          <li>
+            <span>{{ p.nazwa }}</span>
+            <button (click)="usunCzlonka(p.id)" class="button-usun">
+              Usuń
+            </button>
+          </li>
+        }
+      </ul>
+    }
   </div>
 </div>

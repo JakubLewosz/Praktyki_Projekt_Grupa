@@ -1,6 +1,7 @@
-import { Component, Output, EventEmitter, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Podmiot } from '../../core/models/user.model';
 import { AdminService } from '../../core/services/admin.service';
 
 @Component({
@@ -10,61 +11,61 @@ import { AdminService } from '../../core/services/admin.service';
   templateUrl: './podmiot-form.component.html',
   styleUrl: './podmiot-form.component.css'
 })
-export class PodmiotFormComponent implements OnChanges {
+export class PodmiotFormComponent implements OnInit {
   
-  @Input() podmiotDoEdycji: any = null; // 👈 Tutaj wpadną dane
+  @Input() podmiotDoEdycji: Podmiot | null = null;
   @Output() powrot = new EventEmitter<void>();
-  
+
   private fb = inject(FormBuilder);
   private adminService = inject(AdminService);
-
+  
+  isEditMode = false;
+  
   form = this.fb.group({
     nazwa: ['', Validators.required],
-    nip: ['', [Validators.required, Validators.minLength(10)]],
-    regon: ['']
+    nip: ['', Validators.required],
+    regon: ['', Validators.required]
   });
 
-  // 👇 Magia: Jak przyjdą dane, wypełnij formularz
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnInit() {
     if (this.podmiotDoEdycji) {
-      console.log("📝 Edytuję:", this.podmiotDoEdycji);
-      this.form.patchValue({
-        nazwa: this.podmiotDoEdycji.nazwa,
-        nip: this.podmiotDoEdycji.nip,
-        regon: this.podmiotDoEdycji.regon
-      });
-    } else {
-      this.form.reset(); // Jak nowy, to czyścimy
+      this.isEditMode = true;
+      this.form.patchValue(this.podmiotDoEdycji);
     }
   }
 
   zapisz() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      alert('Wszystkie pola są wymagane.');
+      return;
+    }
 
-    if (this.podmiotDoEdycji) {
-      // --- TRYB EDYCJI (UPDATE) ---
-      console.log("Wysyłam UPDATE dla ID:", this.podmiotDoEdycji.id);
-      
-      this.adminService.updatePodmiot(this.podmiotDoEdycji.id, this.form.value).subscribe({
+    // === POPRAWKA (Błędy 8 i 9) ===
+    // Tworzymy "bezpieczny" obiekt, bo this.form.value może zawierać 'null',
+    // a serwis oczekuje 'string'.
+    const payload = {
+      nazwa: this.form.value.nazwa!,
+      nip: this.form.value.nip!,
+      regon: this.form.value.regon!
+    };
+
+    if (this.isEditMode && this.podmiotDoEdycji) {
+      // === EDYCJA ===
+      this.adminService.updatePodmiot(this.podmiotDoEdycji.id, payload).subscribe({
         next: () => {
-          alert('Zaktualizowano podmiot!');
+          alert('Podmiot zaktualizowany!');
           this.powrot.emit();
         },
-        error: (err) => {
-          console.error(err);
-          // Tutaj zobaczysz swój błąd 404 - to oczekiwane!
-          alert('Backend nie gotowy: Brak metody PUT /api/Admin/podmioty/' + this.podmiotDoEdycji.id);
-        }
+        error: (err: any) => alert('Błąd aktualizacji: ' + err.message)
       });
-
     } else {
-      // --- TRYB DODAWANIA (CREATE) ---
-      this.adminService.createPodmiot(this.form.value).subscribe({
+      // === TWORZENIE ===
+      this.adminService.createPodmiot(payload).subscribe({
         next: () => {
-          alert('Podmiot dodany!');
+          alert('Podmiot utworzony!');
           this.powrot.emit();
         },
-        error: (err) => alert('Błąd dodawania')
+        error: (err: any) => alert('Błąd tworzenia: ' + err.message)
       });
     }
   }

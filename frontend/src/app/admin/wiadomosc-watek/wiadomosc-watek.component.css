@@ -1,0 +1,144 @@
+.watek-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* === NAGŁÓWEK === */
+.watek-header {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 1.5rem;
+}
+
+.watek-header h2 {
+  margin: 0.5rem 0 0.5rem 0;
+  color: #333;
+}
+.grupa-info {
+  font-size: 1rem;
+  color: #555;
+}
+.grupa-info strong {
+  color: #000;
+}
+
+.button-powrot {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  margin-bottom: 1rem;
+}
+.button-powrot:hover {
+  text-decoration: underline;
+}
+
+.info-text {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #777;
+}
+
+/* === LISTA WIADOMOŚCI === */
+.wiadomosci-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.wiadomosc {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  max-width: 75%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.wiadomosc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.wiadomosc-header strong {
+  font-size: 0.9rem;
+}
+.data-wyslania {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.wiadomosc-tresc p {
+  margin: 0;
+  /* Zachowuje białe znaki (entety) z bazy danych */
+  white-space: pre-wrap; 
+  line-height: 1.6;
+}
+
+/* Wiadomość od użytkownika (np. Sigma) */
+.user-msg {
+  background-color: #ffffff;
+  border: 1px solid #e9ecef;
+  align-self: flex-start; /* Po lewej */
+}
+.user-msg .wiadomosc-header strong {
+  color: #0056b3; /* Niebieski */
+}
+
+/* Wiadomość od Admina */
+.admin-msg {
+  background-color: #e6f7ff; /* Jasnoniebieskie tło */
+  border: 1px solid #bce0ff;
+  align-self: flex-end; /* Po prawej */
+}
+.admin-msg .wiadomosc-header strong {
+  color: #0069d9; /* Ciemnoniebieski */
+}
+
+/* === FORMULARZ ODPOWIEDZI === */
+.odpowiedz-form-container {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  border: 1px solid #eee;
+}
+
+.odpowiedz-form-container h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 120px;
+}
+.form-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+}
+
+.form-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end; /* Przycisk po prawej */
+}
+
+/* Przyciski (style brane z admin-panel.css, ale dla pewności) */
+.button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}

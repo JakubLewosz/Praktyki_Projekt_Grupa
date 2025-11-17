@@ -1,4 +1,5 @@
-// src/app/core/models/user.model.ts
+// Zakładam, że tak wygląda Twój plik, po prostu dodaj 'nip' i 'regon'
+// lub zastąp całą zawartość, jeśli nie jesteś pewien.
 
 export enum UserRole {
   ADMIN = 0,
@@ -11,12 +12,11 @@ export interface LoginRequest {
   password: string;
 }
 
-// TO JEST KLUCZOWE - bez tego TypeScript sypie błędami w auth.ts
 export interface AuthResponse {
-  token: string;     // <--- Musi tu być, żebyś mógł zrobić response.token
+  token: string;
   expiration: string;
-  username?: string; // Opcjonalne, jeśli backend zwraca
-  role?: string;   // Opcjonalne
+  username?: string;
+  role?: string;
 }
 
 export interface CreateUserRequest {
@@ -33,19 +33,23 @@ export interface User {
   email: string;
   role: string;
   isActive: boolean;
-  powiazanie?: string;
+  powiazanie?: string; // Zakładam, że to pole istnieje z poprzednich poprawek
 }
 
 export interface Podmiot {
   id: number;
   nazwa: string;
   isActive: boolean;
+  
+  // === POPRAWKA (Błędy 10 i 11) ===
+  // Te pola były wymagane przez podmioty-list.html
+  nip: string;
+  regon: string;
 }
 
 export interface Grupa {
   id: number;
   nazwa: string;
   isActive: boolean;
-  podmioty?: Podmiot[];
+  podmioty?: Podmiot[]; // To jest potrzebne dla grupa-details
 }
-

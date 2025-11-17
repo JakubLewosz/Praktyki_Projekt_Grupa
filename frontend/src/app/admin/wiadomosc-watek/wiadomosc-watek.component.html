@@ -1,0 +1,55 @@
+<div class="watek-container">
+  
+  <div class="watek-header">
+    <button (click)="wrocDoListy()" class="button-powrot">&larr; Wróć do listy</button>
+    @if (watek()) {
+      <h2>{{ watek()?.temat }}</h2>
+      <span class="grupa-info">Wątek z grupy: <strong>{{ watek()?.nazwaGrupy }}</strong></span>
+    } @else if (isLoading()) {
+      <h2>Ładowanie wątku...</h2>
+    } @else {
+      <h2>Nie udało się załadować wątku</h2>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <p class="info-text">Ładowanie wiadomości...</p>
+  }
+
+  <div class="wiadomosci-list">
+    @for (msg of watek()?.wiadomosci; track msg.id) {
+      <div class="wiadomosc" [class.admin-msg]="msg.czyAdmin" [class.user-msg]="!msg.czyAdmin">
+        <div class="wiadomosc-header">
+          <strong>{{ msg.nazwaNadawcy }}</strong>
+          <span class="data-wyslania">{{ msg.dataWyslania | date: 'dd.MM.yy HH:mm' }}</span>
+        </div>
+        <div class="wiadomosc-tresc">
+          <p>{{ msg.tresc }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (watek()) {
+    <div class="odpowiedz-form-container">
+      <h3>Odpowiedz na wątek</h3>
+      <form [formGroup]="odpowiedzForm" (ngSubmit)="wyslijOdpowiedz()">
+        
+        <textarea 
+          formControlName="tresc" 
+          rows="6" 
+          placeholder="Wpisz treść swojej odpowiedzi..."
+          class="form-textarea">
+        </textarea>
+        
+        <div class="form-actions">
+          <button type="submit" class="button button-primary" [disabled]="odpowiedzForm.invalid">
+            Wyślij Odpowiedź
+          </button>
+          </div>
+        
+      </form>
+    </div>
+  }
+
+</div>

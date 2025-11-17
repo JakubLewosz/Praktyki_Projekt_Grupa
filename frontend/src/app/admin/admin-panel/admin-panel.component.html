@@ -1,93 +1,119 @@
-<header class="main-header">
-  <h1>System Komunikacji UKNF</h1>
-  <button (click)="wyloguj()" class="button-wyloguj">
-    Wyloguj (jako: admin)
-  </button>
-</header>
-<div class="admin-layout">
-  <div class="sidebar">
-    <div class="sidebar-header">Panel Admina</div>
-    <nav>
-      <button 
-        [class.active]="widokGlowny() === 'podmioty'" 
-        (click)="zmienWidokGlowny('podmioty')">
-        🏢 Podmioty
-      </button>
-      
-      <button 
-        [class.active]="widokGlowny() === 'grupy'" 
-        (click)="zmienWidokGlowny('grupy')">
-        📂 Grupy
-      </button>
-      
-      <button 
-        [class.active]="widokGlowny() === 'uzytkownicy'" 
-        (click)="zmienWidokGlowny('uzytkownicy')">
-        👥 Użytkownicy
-      </button>
-    </nav>
-  </div>
-
-  <div class="content">
+<div class="admin-container">
+  
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>Panel Admina</h2>
+      <span>(UKNF)</span>
+    </div>
     
+    <ul class="nav-menu">
+      <li 
+        (click)="zmienWidokGlowny('wiadomosci')" 
+        [class.active]="widokGlowny() === 'wiadomosci'">
+        Wiadomości
+      </li>
+      <li 
+        (click)="zmienWidokGlowny('podmioty')" 
+        [class.active]="widokGlowny() === 'podmioty'">
+        Podmioty
+      </li>
+      <li 
+        (click)="zmienWidokGlowny('grupy')" 
+        [class.active]="widokGlowny() === 'grupy'">
+        Grupy
+      </li>
+      <li 
+        (click)="zmienWidokGlowny('uzytkownicy')" 
+        [class.active]="widokGlowny() === 'uzytkownicy'">
+        Użytkownicy
+      </li>
+    </ul>
+    
+    <div class="sidebar-footer">
+      <button (click)="wyloguj()" class="button-wyloguj">
+        Wyloguj
+      </button>
+    </div>
+  </nav>
+
+  <main class="content">
+    
+    @if (widokGlowny() === 'wiadomosci') {
+      <div class="view-container">
+        
+        @if (widokPodrzedny() === 'list') {
+          <app-wiadomosci-list 
+            #wiadomosciList
+            (zobaczWatek)="zobaczWatek($event)"> </app-wiadomosci-list>
+        }
+
+        @if (widokPodrzedny() === 'watek') {
+          <app-wiadomosc-watek
+            [watekId]="wybranyWatekId()"
+            (powrot)="handlePowrotZFormularza()">
+          </app-wiadomosc-watek>
+        }
+        
+      </div>
+    }
+
     @if (widokGlowny() === 'podmioty') {
-      
-      @if (widokPodrzedny() === 'list') {
-        <app-podmioty-list 
-          #podmiotList 
-          (chceDodacNowy)="pokazFormularz()"
-          (chceEdytowac)="rozpocznijEdycjePodmiotu($event)">
-        </app-podmioty-list>
-      }
-      
-      @if (widokPodrzedny() === 'form') {
-        <app-podmiot-form 
-          [podmiotDoEdycji]="edytowanyPodmiot()"
-          (powrot)="handlePowrotZFormularza()">
-        </app-podmiot-form>
-      }
+      <div class="view-container">
+        @if (widokPodrzedny() === 'list') {
+          <app-podmioty-list 
+            #podmiotList
+            (startEdycji)="rozpocznijEdycjePodmiotu($event)"
+            (dodajNowy)="pokazFormularz()">
+          </app-podmioty-list>
+        }
+        @if (widokPodrzedny() === 'form') {
+          <app-podmiot-form 
+            [podmiotDoEdycji]="edytowanyPodmiot()"
+            (powrot)="handlePowrotZFormularza()">
+          </app-podmiot-form>
+        }
+      </div>
     }
 
     @if (widokGlowny() === 'grupy') {
-      
-      @if (widokPodrzedny() === 'list') {
-      <app-grupy-list 
-        #grupaList
-        (chceDodacNowy)="pokazFormularz()"
-        (chceZarzadzac)="rozpocznijZarzadzanieGrupa($event)">
-      </app-grupy-list>
-      }
-      
-      @if (widokPodrzedny() === 'form') {
-        <app-grupa-form (powrot)="handlePowrotZFormularza()"></app-grupa-form>
-      }
-
-      @if (widokPodrzedny() === 'details') {
-        <app-grupa-details
-          [grupaDoEdycji]="edytowanaGrupa()"
-          (powrot)="handlePowrotZFormularza()">
-        </app-grupa-details>
-      }
-
+      <div class="view-container">
+        @if (widokPodrzedny() === 'list') {
+          <app-grupy-list 
+            #grupaList
+            (zarzadzajGrupa)="rozpocznijZarzadzanieGrupa($event)"
+            (dodajNowy)="pokazFormularz()">
+          </app-grupy-list>
+        }
+        @if (widokPodrzedny() === 'form') {
+          <app-grupa-form 
+            (powrot)="handlePowrotZFormularza()">
+          </app-grupa-form>
+        }
+        @if (widokPodrzedny() === 'details') {
+          <app-grupa-details 
+            [grupa]="edytowanaGrupa()!"
+            (powrot)="handlePowrotZFormularza()">
+          </app-grupa-details>
+        }
+      </div>
     }
 
     @if (widokGlowny() === 'uzytkownicy') {
-      
-      @if (widokPodrzedny() === 'list') {
-        <app-uzytkownicy-list 
-          #userList
-          (chceDodacNowy)="pokazFormularz()"
-          (chceEdytowac)="rozpocznijEdycjeUzytkownika($event)"> 
-        </app-uzytkownicy-list>
-      }
-      
-      @if (widokPodrzedny() === 'form') {
-        <app-uzytkownicy-form 
-          [userDoEdycji]="edytowanyUzytkownik()" 
-          (powrot)="handlePowrotZFormularza()">
-        </app-uzytkownicy-form>
-      }
+      <div class="view-container">
+        @if (widokPodrzedny() === 'list') {
+          <app-uzytkownicy-list 
+            #userList
+            (startEdycji)="rozpocznijEdycjeUzytkownika($event)"
+            (dodajNowy)="pokazFormularz()">
+          </app-uzytkownicy-list>
+        }
+        @if (widokPodrzedny() === 'form') {
+          <app-uzytkownicy-form 
+            [userDoEdycji]="edytowanyUzytkownik()"
+            (powrot)="handlePowrotZFormularza()">
+          </app-uzytkownicy-form>
+        }
+      </div>
     }
-
-  </div>
+  </main>
 </div>
