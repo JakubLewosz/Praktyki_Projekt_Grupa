@@ -18,9 +18,9 @@
 
   <div class="wiadomosci-list">
     @for (msg of watek()?.wiadomosci; track msg.id) {
-      <div class="wiadomosc" [class.admin-msg]="msg.czyAdmin" [class.user-msg]="!msg.czyAdmin">
+      <div class="wiadomosc" [class.admin-msg]="msg.isAdmin" [class.user-msg]="!msg.isAdmin">
         <div class="wiadomosc-header">
-          <strong>{{ msg.nazwaNadawcy }}</strong>
+          <strong>{{ msg.autorNazwa }}</strong>
           <span class="data-wyslania">{{ msg.dataWyslania | date: 'dd.MM.yy HH:mm' }}</span>
         </div>
         <div class="wiadomosc-tresc">
@@ -43,10 +43,14 @@
         </textarea>
         
         <div class="form-actions">
-          <button type="submit" class="button button-primary" [disabled]="odpowiedzForm.invalid">
-            Wyślij Odpowiedź
+          <button type="submit" class="button button-primary" [disabled]="odpowiedzForm.invalid || isSending()">
+            @if (isSending()) {
+              Wysyłanie...
+            } @else {
+              Wyślij Odpowiedź
+            }
           </button>
-          </div>
+        </div>
         
       </form>
     </div>

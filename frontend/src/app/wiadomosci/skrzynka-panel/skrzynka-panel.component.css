@@ -1,103 +1,246 @@
-:host {
-  display: block;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: #f0f2f5; /* Tło dla całej strony */
+/* === 1. GŁÓWNY UKŁAD === */
+.skrzynka-container {
+  max-width: 1200px;
+  margin: 2rem auto; /* Wycentrowanie na stronie */
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden; /* Ważne dla border-radius */
 }
 
-/* === Nagłówek (Ten sam co w Admin Panelu) === */
-.main-header {
+/* === 2. NAGŁÓWEK === */
+.skrzynka-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2rem;
-  height: 60px;
-  background-color: #fff;
-  border-bottom: 2px solid #e0e0e0;
-  flex-shrink: 0; /* Zapobiega kurczeniu się nagłówka */
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #f0f0f0;
 }
 
-.main-header h1 {
-  font-size: 1.4rem;
-  margin: 0;
+.logo-container h2 {
+  margin: 0 0 0.25rem 0;
   color: #333;
+}
+.logo-container span {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.actions-container {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* === 3. GŁÓWNA TREŚĆ === */
+.skrzynka-content {
+  padding: 2rem;
+  min-height: 400px;
+}
+
+.loading-text,
+.no-data-text {
+  padding: 3rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #777;
+}
+
+/* === 4. STYLE PRZYCISKÓW (Globalne) === */
+.button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+.button-primary {
+  background-color: #007bff;
+  color: white;
+}
+.button-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+.button-secondary {
+  background-color: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+}
+.button-secondary:hover {
+  background-color: #e5e5e5;
+}
+.button-primary:disabled {
+  background-color: #a0cfff;
+  cursor: not-allowed;
 }
 
 .button-wyloguj {
   background: none;
-  border: 1px solid #d9534f;
-  color: #d9534f;
-  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  color: #555;
+  padding: 0.6rem 1.2rem;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 .button-wyloguj:hover {
-  background-color: #fbebee;
-  transform: translateY(-1px);
+  background-color: #f8f8f8;
 }
 
-/* === Kontener Skrzynki === */
-.skrzynka-container {
-  padding: 2rem;
+/* === 5. STYLE WIDOKU 'LISTA' (Tabela) === */
+.data-table {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  box-sizing: border-box;
+  border-collapse: collapse;
 }
-
-.placeholder-content {
-  background-color: #fff;
-  padding: 3rem;
+.data-table th,
+.data-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+.data-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.data-table tr.nieprzeczytany td {
+  font-weight: 700;
+}
+.data-table tr.nieprzeczytany .temat-cell {
+  color: #0056b3;
+}
+.status-badge {
+  background-color: #007aff;
+  color: white;
+  padding: 0.2rem 0.6rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  text-align: center;
-  border: 2px dashed #e0e0e0;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-.placeholder-content h2 {
-  margin-top: 0;
-  color: #333;
+
+/* === 6. STYLE WIDOKU 'WATEK' (Czat) === */
+.watek-header-info {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+.watek-header-info h3 {
+  margin: 0 0 0.5rem 0;
+}
+.watek-header-info span {
+  font-size: 1rem;
+  color: #555;
 }
 
-.placeholder-content p {
-  font-size: 1.1rem;
-  color: #666;
+.wiadomosci-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
 }
-/* ... (style dla :host, .main-header, .button-wyloguj, itd. - zostaw je) ... */
-
-/* === DODAJ TE STYLE NA KOŃCU PLIKU === */
-
-.lista-header {
+.wiadomosc {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  max-width: 75%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.wiadomosc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.wiadomosc-header strong {
+  font-size: 0.9rem;
+}
+.data-wyslania {
+  font-size: 0.8rem;
+  color: #666;
+}
+.wiadomosc-tresc p {
+  margin: 0;
+  white-space: pre-wrap; 
+  line-height: 1.6;
 }
 
-.lista-header h2 {
-  margin: 0;
+/* Wiadomość od użytkownika (Sigma) */
+.user-msg {
+  background-color: #e6f7ff; /* Niebieski (bo to my) */
+  border: 1px solid #bce0ff;
+  align-self: flex-end; /* Po prawej */
+}
+.user-msg .wiadomosc-header strong {
+  color: #0069d9;
+}
+
+/* Wiadomość od Admina */
+.admin-msg {
+  background-color: #ffffff; /* Biały (od kogoś) */
+  border: 1px solid #e9ecef;
+  align-self: flex-start; /* Po lewej */
+}
+.admin-msg .wiadomosc-header strong {
+  color: #0056b3;
+}
+
+/* Formularz odpowiedzi w czacie */
+.odpowiedz-form-container {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  border-top: 2px solid #eee;
+}
+.form-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end; 
+}
+
+/* === 7. STYLE WIDOKU 'FORM' (Nowa Wiadomość) === */
+.form-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.form-container h3 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.nowy-watek-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
   color: #333;
 }
-
-/* Style przycisków (te same co w adminie) */
-.button {
-  padding: 0.6rem 1.25rem;
-  border: none;
-  cursor: pointer;
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ced4da;
   border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  font-size: 0.95rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
 }
-
-.button-primary { 
-  background-color: #007aff; 
-  color: white; 
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
 }
-.button-primary:hover { 
-  background-color: #0069d9;
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
 }

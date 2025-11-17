@@ -11,8 +11,8 @@ import { AdminService, WiadomoscWatek } from '../../core/services/admin.service'
 })
 export class WiadomosciListComponent implements OnInit {
 
-  // Ten @Output() jest poprawny, rodzic (admin-panel) go słucha
-  @Output() zobaczWatek = new EventEmitter<string>();
+  // === POPRAWKA: Zmieniono typ na 'number' ===
+  @Output() zobaczWatek = new EventEmitter<number>();
 
   private adminService = inject(AdminService);
 
@@ -32,17 +32,15 @@ export class WiadomosciListComponent implements OnInit {
       },
       error: (err: any) => { 
         console.error("Błąd pobierania wiadomości:", err);
-        alert("Nie udało się pobrać wiadomości.");
+        // Już nie pokazujemy alertu, bo błąd 404 (Not Found) jest teraz obsłużony
         this.isLoading.set(false);
       }
     });
   }
 
-  // === POPRAWKA NAZWY FUNKCJI ===
-  // Zmieniamy nazwę metody, aby nie kolidowała z @Output()
-  onZobaczWatek(watekId: string) {
+  // === POPRAWKA: Zmieniono typ na 'number' ===
+  onZobaczWatek(watekId: number) {
     console.log("Lista Wiadomości: Kliknięto 'Zobacz' dla ID:", watekId);
-    // Nadal emitujemy event 'zobaczWatek'
     this.zobaczWatek.emit(watekId);
   }
 }

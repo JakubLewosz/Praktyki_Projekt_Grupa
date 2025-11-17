@@ -45,6 +45,7 @@ namespace backend.Controllers
 
         // ==========================================
         // 1. LISTA WĄTKÓW (GET /api/threads)
+        // Odpowiednik frontowego: GET /api/me/threads
         // ==========================================
         [HttpGet]
         public async Task<IActionResult> GetThreadsList()
@@ -121,6 +122,7 @@ namespace backend.Controllers
 
         // ==========================================
         // 2. SZCZEGÓŁY WĄTKU (GET /api/threads/{id})
+        // Odpowiednik frontowego: GET /api/me/threads/{id}
         // ==========================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetThreadDetails(int id)
@@ -177,6 +179,12 @@ namespace backend.Controllers
                     Id = m.Id,
                     Tresc = m.Tresc,
                     DataWyslania = m.DataWyslania,
+                    
+                    // --- FIX: DODANE IsAdmin ---
+                    // Jeśli autorem NIE jest podmiot, to znaczy że to Admin/UKNF.
+                    IsAdmin = m.Autor.Rola != RolaUzytkownika.Podmiot,
+                    // ---------------------------
+
                     Autor = new AuthorDto
                     {
                         Id = m.Autor.Id,

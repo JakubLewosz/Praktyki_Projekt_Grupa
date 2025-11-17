@@ -1,32 +1,143 @@
-<header class="main-header">
-  <h1>System Komunikacji UKNF</h1>
-  <button (click)="wyloguj()" class="button-wyloguj">
-    Wyloguj
-  </button>
-</header>
-
 <div class="skrzynka-container">
 
-  @if (widok() === 'lista') {
-    
-    <div class="lista-header">
-      <h2>Skrzynka Odbiorcza</h2>
-      <button class="button button-primary" (click)="pokazFormularzNowejWiadomosci()">
-        + Nowa Wiadomość
-      </button>
+  <header class="skrzynka-header">
+    <div class="logo-container">
+      <h2>Twoja Skrzynka</h2>
+      <span>(Podmiot)</span>
     </div>
-
-    <div class="placeholder-content">
-      <p>Wkrótce tutaj pojawi się lista Twoich komunikatów.</p>
+    <div class="actions-container">
+      @if (widok() === 'list') {
+        <button (click)="pokazFormularzNowejWiadomosci()" class="button button-primary">
+          + Nowa Wiadomość
+        </button>
+      }
+      @if (widok() !== 'list') {
+        <button (click)="pobierzMojeWatki()" class="button button-secondary">
+          &larr; Wróć do Skrzynki
+        </button>
+      }
+      <button (click)="wyloguj()" class="button-wyloguj">Wyloguj</button>
     </div>
-  }
+  </header>
 
-  @if (widok() === 'formularz') {
-    
-    <app-nowa-wiadomosc-form 
-      [mojeGrupy]="mojeGrupy()"
-      (powrot)="handlePowrotDoListy()">
-    </app-nowa-wiadomosc-form>
-  }
+  <main class="skrzynka-content">
 
+    @if (isLoading()) {
+      <p class="loading-text">Ładowanie...</p>
+    }
+
+    @if (widok() === 'list' && !isLoading()) {
+      <div class="lista-watkow-container">
+        @if (watki().length === 0) {
+          <p class="no-data-text">Nie masz jeszcze żadnych wiadomości.</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Temat</th>
+                <th>Grupa</th>
+                <th>Data Ost. Wiad.</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (watek of watki(); track watek.id) {
+                <tr [class.nieprzeczytany]="watek.czyNieprzeczytany">
+                  <td>
+                    @if (watek.czyNieprzeczytany) {
+                      <span class="status-badge">Nowa</span>
+                    }
+                  </td>
+                  <td class="temat-cell">{{ watek.temat }}</td>
+                  <td>{{ watek.nazwaGrupy }}</td>
+                  <td>{{ watek.dataOstatniejWiadomosci | date: 'dd.MM.yyyy HH:mm' }}</td>
+                  <td>
+                    <button (click)="zobaczWatek(watek.id)" class="button button-secondary">
+                      Zobacz / Odpowiedz
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+
+    @if (widok() === 'watek' && aktywnyWatek() && !isLoading()) {
+      <div class="watek-container">
+        <div class="watek-header-info">
+          <h3>{{ aktywnyWatek()?.temat }}</h3>
+          <span>Wątek z grupy: <strong>{{ aktywnyWatek()?.nazwaGrupy }}</strong></span>
+        </div>
+
+        <div class="wiadomosci-list">
+          @for (msg of aktywnyWatek()?.wiadomosci; track msg.id) {
+            <div class="wiadomosc" [class.admin-msg]="msg.isAdmin" [class.user-msg]="!msg.isAdmin">
+              <div class="wiadomosc-header">
+                <strong>{{ msg.autorNazwa }}</strong>
+                <span class="data-wyslania">{{ msg.dataWyslania | date: 'dd.MM.yy HH:mm' }}</span>
+              </div>
+              <div class="wiadomosc-tresc">
+                <p>{{ msg.tresc }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="odpowiedz-form-container">
+          <form [formGroup]="odpowiedzForm" (ngSubmit)="wyslijOdpowiedz()">
+            <textarea 
+              formControlName="tresc" 
+              rows="5" 
+              placeholder="Wpisz treść swojej odpowiedzi..."
+              class="form-textarea">
+            </textarea>
+            <div class="form-actions">
+              <button type="submit" class="button button-primary" [disabled]="odpowiedzForm.invalid">
+                Wyślij Odpowiedź
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    @if (widok() === 'form' && !isLoading()) {
+      <div class="form-container">
+        <h3>Tworzenie nowej wiadomości</h3>
+        <form [formGroup]="nowyWatekForm" (ngSubmit)="stworzNowyWatek()" class="nowy-watek-form">
+          
+          <div class="form-group">
+            <label for="grupaId">Wybierz Grupę (Odbiorcę):</label>
+            <select id="grupaId" formControlName="grupaId" class="form-input">
+              <option [ngValue]="null" disabled>Wybierz grupę...</option>
+              @for (grupa of grupy(); track grupa.id) {
+                <option [ngValue]="grupa.id">{{ grupa.nazwa }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="temat">Temat:</label>
+            <input id="temat" type="text" formControlName="temat" class="form-input" placeholder="Wpisz temat...">
+          </div>
+
+          <div class="form-group">
+            <label for="tresc">Treść Wiadomości:</label>
+            <textarea id="tresc" formControlName="tresc" rows="8" class="form-textarea" placeholder="Wpisz treść..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="button button-primary" [disabled]="nowyWatekForm.invalid">
+              Wyślij Wiadomość
+            </button>
+          </div>
+
+        </form>
+      </div>
+    }
+
+  </main>
 </div>
