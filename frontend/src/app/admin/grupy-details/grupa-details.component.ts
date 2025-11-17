@@ -39,7 +39,7 @@ export class GrupaDetailsComponent implements OnInit {
     if (!this.grupa) return;
 
     // === POPRAWKA: Używamy poprawnej nazwy 'getGrupaDetails' ===
-    this.adminService.getGrupaDetails(this.grupa.id).subscribe({
+    this.adminService.getGrupaById(this.grupa.id).subscribe({
       next: (data) => this.aktualnaGrupa.set(data),
       error: (err: any) => alert('Nie udało się pobrać szczegółów grupy: ' + err.message)
     });
@@ -62,7 +62,7 @@ export class GrupaDetailsComponent implements OnInit {
     if (!grupaId) return;
 
     // === POPRAWKA: Używamy poprawnej nazwy 'addPodmiotToGrupa' ===
-    this.adminService.addPodmiotToGrupa(podmiotId, grupaId).subscribe({
+    this.adminService.assignPodmiotToGrupa(podmiotId, grupaId).subscribe({
       next: () => {
         alert('Dodano podmiot do grupy!');
         this.form.reset(); // Czyścimy formularz

@@ -2,7 +2,10 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AuthService } from './core/services/auth'; // Popraw ścieżkę, jeśli trzeba
+
+// Zaimportuj swój zaktualizowany AuthService
+// Popraw ścieżkę, jeśli jest inna
+import { AuthService } from './core/services/auth'; 
 
 @Component({
   selector: 'app-root',
@@ -22,62 +25,36 @@ export class AppComponent {
   private currentUser = toSignal(this.authService.currentUser);
 
   /**
-   * Komputowany sygnał sprawdzający status blokady
+   * Ten "komputowany" sygnał będzie true TYLKO jeśli użytkownik
+   * istnieje ORAZ jego status 'isActive' to false.
    */
   isBlocked = computed(() => {
     const user = this.currentUser();
-    
-    // ---
-    // --- POCZĄTEK BLOKU DIAGNOSTYCZNEGO ---
-    // ---
-    console.log("===================================");
-    console.log("AUTH DEBUG: Sprawdzam status...");
-    
-    if (user) {
-      console.log("AUTH DEBUG: Znalazłem użytkownika w tokenie:", user);
-      
-      // Sprawdzamy, czy pole 'isActive' w ogóle istnieje
-      if (user.hasOwnProperty('isActive')) {
-        console.log("AUTH DEBUG: Pole 'isActive' istnieje.");
-        console.log("AUTH DEBUG: Wartość 'isActive':", user.isActive);
-        console.log("AUTH DEBUG: Typ wartości (typeof):", typeof user.isActive);
 
-        // Sprawdzamy różne przypadki
-        if (user.isActive === false) {
-          console.log("AUTH DEBUG: WYNIK: Zablokowany (boolean false)");
-        } 
-        
-        // ---
-        // --- POPRAWKA JEST TUTAJ ---
-        // ---
-        // Mówimy TypeScriptowi, żeby na chwilę zignorował typy
-        else if ((user.isActive as any) === "false") { 
-          console.log("AUTH DEBUG: WYNIK: BŁĄD! Jest string 'false' zamiast boolean.");
-        } 
-        // ---
-        // --- KONIEC POPRAWKI ---
-        // ---
-        
-        else {
-          console.log("AUTH DEBUG: WYNIK: Odblokowany (wartość nie jest boolean false)");
-        }
-
-      } else {
-        console.log("AUTH DEBUG: WYNIK: BŁĄD! Brak pola 'isActive' w tokenie!");
-      }
-
-    } else {
-      console.log("AUTH DEBUG: WYNIK: Brak zalogowanego użytkownika (null).");
+    if (!user) {
+      return false; // Nie jest zalogowany, więc nie jest zablokowany
     }
-    console.log("===================================");
+
     // ---
-    // --- KONIEC BLOKU DIAGNOSTYCZNEGO ---
+    // --- SZYBKA POPRAWKA (FRONTEND) ---
+    // ---
+    // Sprawdzamy oba przypadki:
+    // 1. Czy 'isActive' to boolean 'false'?
+    // 2. Czy 'isActive' to string "false"?
+    if (user.isActive === false || user.isActive === "false") {
+      return true; // Tak, jest zablokowany
+    }
+    // ---
+    // --- KONIEC POPRAWKI ---
     // ---
 
-    // Nasza oryginalna logika (jest poprawna, o ile dane są poprawne)
-    return user && user.isActive === false; 
+    // W każdym innym przypadku (np. true, "true", null) jest odblokowany
+    return false; 
   });
 
+  /**
+   * Metoda, którą wywoła przycisk "Wyloguj" na ekranie blokady
+   */
   logout() {
     this.authService.logout();
   }
