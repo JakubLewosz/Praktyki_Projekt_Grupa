@@ -23,9 +23,12 @@ export class PodmiotyListComponent implements OnInit {
   }
 
   zaladujPodmioty() {
-    this.adminService.getPodmioty().subscribe({
+    //
+    // --- JEDYNA ZMIANA JEST TUTAJ (dodanie 'all') ---
+    //
+    this.adminService.getPodmioty('all').subscribe({
       next: (data: any[]) => {
-        console.log("📦 PODMIOTY (Raw):", data); // Tu widać isActive: false
+        console.log("📦 PODMIOTY (Raw, status=all):", data); 
 
         // TŁUMACZ DANYCH (z poprawką)
         const naprawione = data.map(p => ({
@@ -34,8 +37,7 @@ export class PodmiotyListComponent implements OnInit {
           nip: p.nip || p.Nip || '-',
           regon: p.regon || p.Regon || '-',
           
-          // --- POPRAWKA W TEJ LINII ---
-          // Czytamy bezpośrednio 'isActive' z API, zamiast szukać 'isDisabled'
+          // Czytamy bezpośrednio 'isActive' z API
           isActive: p.isActive 
         }));
 
@@ -75,7 +77,7 @@ export class PodmiotyListComponent implements OnInit {
         },
         error: (err) => {
           console.error(err);
-          alert('Nie udało się odblokować. (Czy backend ma endpoint /enable?)');
+          alert('Nie udało się odblokować.');
         }
       });
     }

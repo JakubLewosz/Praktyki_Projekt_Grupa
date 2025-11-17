@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs'; // 👈 DODANY IMPORT 'of'
-import { delay } from 'rxjs/operators'; // 👈 DODANY IMPORT 'delay'
+// ZMIANA: Dodany import HttpParams
+import { HttpClient, HttpParams } from '@angular/common/http'; 
+import { Observable, of } from 'rxjs'; 
+import { delay } from 'rxjs/operators'; 
 import { environment } from '../../../environments/environment';
 import { User, Podmiot, Grupa } from '../models/user.model';
 
@@ -20,9 +21,29 @@ export class AdminService {
     return this.http.get<User[]>(`${this.apiUrl}/users`);
   }
 
-  getPodmioty(): Observable<Podmiot[]> {
-    return this.http.get<Podmiot[]>(`${this.apiUrl}/podmioty`);
+  //
+  // --- ZAKTUALIZOWANA METODA ---
+  //
+  /**
+   * Pobiera listę podmiotów.
+   * @param status 'active' (domyślnie) zwraca tylko aktywne.
+   * 'all' zwraca wszystkie (aktywne i nieaktywne).
+   */
+  getPodmioty(status: 'all' | 'active' = 'active'): Observable<Podmiot[]> {
+    
+    let params = new HttpParams();
+    
+    // Ustawiamy parametr 'status' tylko wtedy, gdy NIE JEST 'active'
+    // (bo backend i tak domyślnie użyje 'active')
+    if (status === 'all') {
+      params = params.set('status', 'all');
+    }
+
+    // Używamy { params } w opcjach zapytania i silnego typowania Podmiot[]
+    return this.http.get<Podmiot[]>(`${this.apiUrl}/podmioty`, { params });
   }
+  // --- KONIEC ZAKTUALIZOWANEJ METODY ---
+  //
 
   getGrupy(): Observable<Grupa[]> {
     return this.http.get<Grupa[]>(`${this.apiUrl}/grupy`);
@@ -65,30 +86,27 @@ export class AdminService {
   }
 
   enablePodmiot(id: number): Observable<void> {
-    // Ten endpoint prawdopodobnie nie istnieje w backendzie (błąd 404),
-    // ale zostawiamy go "na zaś".
+    // ZMIANA: Usunięty nieaktualny komentarz, ten endpoint istnieje.
     return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
   }
 
-  // ... (istniejące metody) ...
+  // --- ZARZĄDZANIE CZŁONKAMI GRUPY ---
 
-// --- ZARZĄDZANIE CZŁONKAMI GRUPY ---
-
-    // GET /api/Admin/grupy/{id} (Zakładam, że ten endpoint istnieje i zwraca grupę z listą podmiotów)
-    getGrupaById(id: number): Observable<Grupa> {
+  // GET /api/Admin/grupy/{id} (Zakładam, że ten endpoint istnieje i zwraca grupę z listą podmiotów)
+  getGrupaById(id: number): Observable<Grupa> {
     return this.http.get<Grupa>(`${this.apiUrl}/grupy/${id}`);
-    }
+  }
 
-    // POST /api/Admin/assign-podmiot-to-grupa (Ten endpoint widzieliśmy w Swaggerze)
-    assignPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
+  // POST /api/Admin/assign-podmiot-to-grupa (Ten endpoint widzieliśmy w Swaggerze)
+  assignPodmiotToGrupa(podmiotId: number, grupaId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/assign-podmiot-to-grupa`, { podmiotId, grupaId });
-    }
+  }
 
-    // TODO: Poproś backendowca o endpoint do usuwania podmiotu z grupy
-    // np. DELETE /api/Admin/remove-podmiot-from-grupa
-removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
-    // To jest już prawdziwe zapytanie do API, którego zażądałeś
-    return this.http.delete(`${this.apiUrl}/grupy/${grupaId}/podmioty/${podmiotId}`);
-    }
+  // TODO: Poproś backendowca o endpoint do usuwania podmiotu z grupy
+  // np. DELETE /api/Admin/remove-podmiot-from-grupa
+  removePodmiotFromGrupa(podmiotId: number, grupaId: number): Observable<any> {
+    // To jest już prawdziwe zapytanie do API, którego zażądałeś
+    return this.http.delete(`${this.apiUrl}/grupy/${grupaId}/podmioty/${podmiotId}`);
+  }
 
 }
