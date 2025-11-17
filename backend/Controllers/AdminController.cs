@@ -188,47 +188,42 @@ namespace backend.Controllers
             return Ok(await query.ToListAsync());
         }
 
-        // --- KASKADOWE BLOKOWANIE (ZMODYFIKOWANE) ---
+        // --- KASKADOWE BLOKOWANIE (PODMIOT + PRACOWNICY) ---
         [HttpPut("podmioty/{id}/disable")]
         public async Task<IActionResult> DisablePodmiot(int id)
         {
-            // 1. Znajdź podmiot
             var podmiot = await _context.Podmioty.FindAsync(id);
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
             
-            // 2. Zablokuj podmiot
+            // 1. Zablokuj podmiot
             podmiot.IsActive = false;
 
-            // 3. Znajdź wszystkich użytkowników tego podmiotu
+            // 2. Znajdź i zablokuj użytkowników
             var uzytkownicyDoBlokady = await _context.Users
                 .Where(u => u.PodmiotId == id)
                 .ToListAsync();
 
-            // 4. Zablokuj użytkowników (ustawiając blokadę na 100 lat)
             foreach (var user in uzytkownicyDoBlokady)
             {
-                // Używamy mechanizmu Identity: LockoutEnd
                 user.LockoutEnd = DateTimeOffset.Now.AddYears(100);
             }
 
-            // 5. Zapisz wszystko w jednej transakcji
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
-        // --- KONIEC ZMIAN ---
 
+        // --- POJEDYNCZE ODBLOKOWANIE (TYLKO PODMIOT) ---
         [HttpPut("podmioty/{id}/enable")]
         public async Task<IActionResult> EnablePodmiot(int id)
         {
             var podmiot = await _context.Podmioty.FindAsync(id);
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
+            // 1. Odblokuj TYLKO podmiot
             podmiot.IsActive = true;
             
-            // UWAGA: Tutaj NIE odblokowujemy automatycznie użytkowników.
-            // Zazwyczaj admin woli ręcznie decydować, kto wraca do pracy.
-            // Jeśli chcesz odblokowywać też userów, daj znać.
+            // 2. Użytkownicy pozostają zablokowani (zgodnie z wymaganiem)
 
             await _context.SaveChangesAsync();
             
