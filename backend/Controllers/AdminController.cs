@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace backend.Controllers
 {
@@ -22,8 +23,7 @@ namespace backend.Controllers
         }
 
         // --- Zarządzanie Użytkownikami ---
-        // (Ta sekcja była poprawna, bo używa _userManager.UpdateAsync)
-
+        // (bez zmian)
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
         {
@@ -136,15 +136,23 @@ namespace backend.Controllers
 
         // --- Zarządzanie Podmiotami ---
 
+        // POPRAWIONE
         [HttpPost("podmioty")]
         public async Task<IActionResult> CreatePodmiot([FromBody] CreatePodmiotRequestDto dto)
         {
-            var podmiot = new Podmiot { Nazwa = dto.Nazwa, IsActive = true };
+            var podmiot = new Podmiot 
+            { 
+                Nazwa = dto.Nazwa, 
+                IsActive = true,
+                NIP = dto.NIP,      // Zapisujemy NIP
+                REGON = dto.REGON   // Zapisujemy REGON
+            };
             _context.Podmioty.Add(podmiot);
             await _context.SaveChangesAsync();
             return Ok(podmiot);
         }
 
+        // POPRAWIONE
         [HttpPut("podmioty/{id}")]
         public async Task<IActionResult> EditPodmiot(int id, [FromBody] EditPodmiotDto dto)
         {
@@ -152,7 +160,10 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.Nazwa = dto.Nazwa;
-            await _context.SaveChangesAsync(); // Ten był poprawny
+            podmiot.NIP = dto.NIP;      // Zapisujemy NIP
+            podmiot.REGON = dto.REGON;  // Zapisujemy REGON
+            
+            await _context.SaveChangesAsync();
             
             return Ok(podmiot);
         }
@@ -160,6 +171,8 @@ namespace backend.Controllers
         [HttpGet("podmioty")]
         public async Task<IActionResult> GetPodmioty()
         {
+            // Ten endpoint nie wymagał zmian, ponieważ zwraca całe obiekty Podmiot
+            // a teraz obiekty te zawierają NIP i REGON
             return Ok(await _context.Podmioty.ToListAsync());
         }
 
@@ -170,11 +183,7 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
             
             podmiot.IsActive = false;
-            
-            // --- POPRAWKA ---
-            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
-            // --- KONIEC POPRAWKI ---
             
             return Ok(podmiot);
         }
@@ -186,11 +195,7 @@ namespace backend.Controllers
             if (podmiot == null) return NotFound("Podmiot nie znaleziony.");
 
             podmiot.IsActive = true;
-            
-            // --- POPRAWKA ---
-            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
-            // --- KONIEC POPRAWKI ---
             
             return Ok(podmiot);
         }
@@ -212,6 +217,28 @@ namespace backend.Controllers
             return Ok(await _context.Grupy.ToListAsync());
         }
         
+        // POPRAWIONE
+        [HttpGet("grupy/{id}")]
+        public async Task<IActionResult> GetGrupa(int id)
+        {
+            var grupa = await _context.Grupy
+                .Where(g => g.Id == id)
+                .Select(g => new
+                {
+                    g.Id,
+                    g.Nazwa,
+                    g.IsActive,
+                    // Dodajemy NIP i REGON do odpowiedzi
+                    Podmioty = g.Podmioty.Select(p => new { p.Id, p.Nazwa, p.NIP, p.REGON }),
+                    UzytkownicyMerytoryczni = g.UzytkownicyMerytoryczni.Select(u => new { u.Id, u.UserName })
+                })
+                .FirstOrDefaultAsync();
+
+            if (grupa == null) return NotFound("Grupa nie znaleziona.");
+
+            return Ok(grupa);
+        }
+        
         [HttpPut("grupy/{id}/disable")]
         public async Task<IActionResult> DisableGrupa(int id)
         {
@@ -219,11 +246,7 @@ namespace backend.Controllers
             if (grupa == null) return NotFound("Grupa nie znaleziona.");
 
             grupa.IsActive = false;
-            
-            // --- POPRAWKA ---
-            // Ta linijka była brakująca:
             await _context.SaveChangesAsync();
-            // --- KONIEC POPRAWKI ---
             
             return Ok(grupa);
         }
@@ -247,6 +270,31 @@ namespace backend.Controllers
             }
             
             return Ok(new { message = "Podmiot przypisany do grupy." });
+        }
+
+        [HttpDelete("grupy/{grupaId}/podmioty/{podmiotId}")]
+        public async Task<IActionResult> RemovePodmiotFromGrupa(int grupaId, int podmiotId)
+        {
+            var grupa = await _context.Grupy
+                .Include(g => g.Podmioty)
+                .FirstOrDefaultAsync(g => g.Id == grupaId);
+
+            if (grupa == null)
+            {
+                return NotFound("Grupa nie znaleziona.");
+            }
+
+            var podmiot = grupa.Podmioty.FirstOrDefault(p => p.Id == podmiotId);
+
+            if (podmiot == null)
+            {
+                return NotFound("Podmiot nie jest przypisany do tej grupy.");
+            }
+
+            grupa.Podmioty.Remove(podmiot);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         [HttpPost("assign-user-to-grupa")]

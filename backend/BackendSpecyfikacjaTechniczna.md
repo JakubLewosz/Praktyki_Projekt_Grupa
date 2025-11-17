@@ -81,6 +81,8 @@ erDiagram
         int Id PK
         string Nazwa
         bool IsActive
+        string NIP       
+        string REGON      
     }
 
     Grupa {

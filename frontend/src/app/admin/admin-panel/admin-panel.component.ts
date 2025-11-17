@@ -1,26 +1,23 @@
-import { Component, signal, ViewChild } from '@angular/core';
+import { Component, signal, ViewChild, OnInit, OnDestroy } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router'; 
 
-// Importujemy wszystkie komponenty list
+// Importy komponentów (bez zmian)
 import { PodmiotyListComponent } from '../podmioty-list/podmioty-list.component';
 import { GrupyListComponent } from '../grupy-list/grupy-list.component';
 import { UzytkownicyListComponent } from '../uzytkownicy-list/uzytkownicy-list.component';
-
-// Importujemy wszystkie komponenty formularzy/szczegółów
 import { PodmiotFormComponent } from '../podmiot-form/podmiot-form.component';
-// Upewnij się, że ścieżka do 'grupa-form' jest poprawna
 import { GrupaFormComponent } from '../grupy-form/grupy-form.component'; 
 import { UzytkownicyFormComponent } from '../uzytkownicy-form/uzytkownicy-form.component';
-// Upewnij się, że ścieżka do 'grupa-details' jest poprawna
 import { GrupaDetailsComponent } from '../grupy-details/grupa-details.component'; 
-
-// Importujemy modele
 import { User, Grupa, Podmiot } from '../../core/models/user.model';
 
 
-// Definiujemy, jakie mogą być widoki
+// === POPRAWKA: BRAKUJĄCE DEFINICJE TYPÓW ===
 type WidokGlowny = 'podmioty' | 'grupy' | 'uzytkownicy';
-type WidokPodrzedny = 'list' | 'form' | 'details'; // Dodany 'details'
+type WidokPodrzedny = 'list' | 'form' | 'details'; 
+// ==========================================
+
 
 @Component({
   selector: 'app-admin-panel',
@@ -33,53 +30,66 @@ type WidokPodrzedny = 'list' | 'form' | 'details'; // Dodany 'details'
     GrupaFormComponent,     
     UzytkownicyListComponent,
     UzytkownicyFormComponent,
-    GrupaDetailsComponent  // Dodany do importów
+    GrupaDetailsComponent 
   ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.css'
 })
-export class AdminPanelComponent {
+export class AdminPanelComponent implements OnInit, OnDestroy {
   
-  // --- SYGNAŁY DO PRZEŁĄCZANIA WIDOKÓW ---
+  // --- Sygnały i @ViewChild (teraz powinny działać) ---
   widokGlowny = signal<WidokGlowny>('podmioty');
   widokPodrzedny = signal<WidokPodrzedny>('list');
-
-  // --- SYGNAŁY DO PRZEKAZYWANIA DANYCH EDYCJI ---
   edytowanyUzytkownik = signal<User | null>(null);
   edytowanyPodmiot = signal<Podmiot | null>(null);
-  edytowanaGrupa = signal<Grupa | null>(null); // Dla 'details'
-
-  // --- REFERENCJE DO KOMPONENTÓW LIST (do odświeżania) ---
+  edytowanaGrupa = signal<Grupa | null>(null); 
   @ViewChild('podmiotList') podmiotListRef?: PodmiotyListComponent;
   @ViewChild('grupaList') grupaListRef?: GrupyListComponent;
   @ViewChild('userList') userListRef?: UzytkownicyListComponent;
 
-  // --- LOGIKA PRZEŁĄCZANIA WIDOKÓW ---
+  // --- Constructor i Wyloguj (bez zmian) ---
+  constructor(private router: Router) {}
 
-  zmienWidokGlowny(widok: WidokGlowny) {
+  wyloguj() {
+    localStorage.removeItem('token'); 
+    this.router.navigate(['/login']); 
+  }
+
+  // === LOGIKA NASŁUCHIWANIA ZMIAN W PAMIĘCI ===
+  storageEventListener = (event: StorageEvent) => {
+    if (event.key === 'token') {
+      alert('Zostałeś automatycznie wylogowany z powodu akcji w innej karcie.');
+      this.router.navigate(['/login']);
+    }
+  };
+
+  ngOnInit() {
+    window.addEventListener('storage', this.storageEventListener);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('storage', this.storageEventListener);
+  }
+  // === KONIEC LOGIKI NASŁUCHIWANIA ===
+
+
+  // --- Reszta logiki komponentu (bez zmian) ---
+  zmienWidokGlowny(widok: WidokGlowny) { // Ten też już działa
     this.widokGlowny.set(widok);
     this.widokPodrzedny.set('list'); 
   }
-
   pokazFormularz() {
-    // Czyścimy wszystkie dane edycji, gdy klikamy "Dodaj nowy"
     this.edytowanyUzytkownik.set(null);
     this.edytowanyPodmiot.set(null);
     this.edytowanaGrupa.set(null);
     this.widokPodrzedny.set('form');
   }
-
-  // Ta funkcja zamyka formularz i odświeża listę
   handlePowrotZFormularza() {
     const aktualnyWidok = this.widokGlowny();
     this.widokPodrzedny.set('list'); 
-
-    // Czyścimy dane edycji
     this.edytowanyUzytkownik.set(null);
     this.edytowanyPodmiot.set(null);
     this.edytowanaGrupa.set(null);
-
-    // Rozkazujemy odpowiedniej liście, aby załadowała się na nowo
     setTimeout(() => {
       if (aktualnyWidok === 'podmioty' && this.podmiotListRef) {
         this.podmiotListRef.zaladujPodmioty();
@@ -92,22 +102,15 @@ export class AdminPanelComponent {
       }
     }, 0);
   }
-
-  // --- LOGIKA STARTU EDYCJI / ZARZĄDZANIA ---
-  
   rozpocznijEdycjeUzytkownika(user: User) {
     this.edytowanyUzytkownik.set(user);
     this.widokPodrzedny.set('form');
   }
-
   rozpocznijEdycjePodmiotu(podmiot: Podmiot) {
     this.edytowanyPodmiot.set(podmiot); 
     this.widokPodrzedny.set('form');
   }
-
-  // Funkcja do obsługi przycisku "Zarządzaj"
   rozpocznijZarzadzanieGrupa(grupa: Grupa) {
-    console.log("2. [PANEL ADMINA] Odebrałem sygnał, przełączam widok na 'details'");
     this.edytowanaGrupa.set(grupa);
     this.widokPodrzedny.set('details');
   }

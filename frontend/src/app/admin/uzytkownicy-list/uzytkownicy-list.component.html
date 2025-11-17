@@ -1,10 +1,13 @@
-<div class="table-container">
-  <div class="header-actions">
+<div class="admin-container">
+  <div class="admin-header">
     <h2>Lista Użytkowników</h2>
-    <button (click)="dodajNowegoUzytkownika()" class="btn-add">+ Dodaj Użytkownika</button>
+    
+    <button (click)="dodajNowegoUzytkownika()" class="button button-primary">
+      + Dodaj Użytkownika
+    </button>
   </div>
 
-  <table>
+  <table class="admin-table">
     <thead>
       <tr>
         <th>Email / Login</th>
@@ -24,30 +27,31 @@
 
           <td>
             @if (user.role === 'Admin') {
-              <span class="badge badge-admin">Administrator</span>
+              <span class="role-tag role-admin">Administrator</span>
             } @else if (user.role === 'Podmiot') {
-              <span class="badge badge-podmiot">Podmiot</span>
+              <span class="role-tag role-podmiot">Podmiot</span>
             } @else {
-              <span class="badge badge-neutral">{{ user.role }}</span>
+              <span class="role-tag role-neutral">{{ user.role }}</span>
             }
           </td>
 
           <td>{{ user.powiazanie }}</td>
           <td>
             @if (user.isActive) {
-              <span style="color: green; font-weight: bold;">Aktywny</span>
+              <span class="badge badge-success">Aktywny</span>
             } @else {
-              <span style="color: red; font-weight: bold;">Zablokowany</span>
+              <span class="badge badge-danger">Zablokowany</span>
             }
           </td>
           <td>
-              <button (click)="edytujUzytkownika(user)" class="btn-link">Edytuj</button>
-              
-              <button (click)="zmienStatus(user)" class="btn-link" 
-                      [style.color]="user.isActive ? 'orange' : 'green'">
-                {{ user.isActive ? 'Zablokuj' : 'Odblokuj' }}
-              </button>
-
+            
+            <button (click)="edytujUzytkownika(user)" class="action-button edit">Edytuj</button>
+            
+            @if (user.isActive) {
+              <button (click)="zmienStatus(user)" class="action-button disable">Zablokuj</button>
+            } @else {
+              <button (click)="zmienStatus(user)" class="action-button enable">Odblokuj</button>
+            }
           </td>
         </tr>
       }

@@ -1,17 +1,32 @@
-@if (widok() === 'lista') {
-  <app-lista-watkow 
-    (chceOtworzycWatek)="otworzWatek($event)"
-    (chceDodacNowa)="pokazFormularzNowejWiadomosci()"> </app-lista-watkow>
-}
+<header class="main-header">
+  <h1>System Komunikacji UKNF</h1>
+  <button (click)="wyloguj()" class="button-wyloguj">
+    Wyloguj
+  </button>
+</header>
 
-@if (widok() === 'watek') {
-  <app-widok-watku 
-    (chceWrocicDoListy)="wrocDoListy()">
-  </app-widok-watku>
-}
+<div class="skrzynka-container">
 
-@if (widok() === 'nowa') {
-  <app-nowa-wiadomosc-form
-    (chceAnulowac)="wrocDoListy()"
-    (chceWyslac)="wrocDoListy()"> </app-nowa-wiadomosc-form>
-}
+  @if (widok() === 'lista') {
+    
+    <div class="lista-header">
+      <h2>Skrzynka Odbiorcza</h2>
+      <button class="button button-primary" (click)="pokazFormularzNowejWiadomosci()">
+        + Nowa Wiadomość
+      </button>
+    </div>
+
+    <div class="placeholder-content">
+      <p>Wkrótce tutaj pojawi się lista Twoich komunikatów.</p>
+    </div>
+  }
+
+  @if (widok() === 'formularz') {
+    
+    <app-nowa-wiadomosc-form 
+      [mojeGrupy]="mojeGrupy()"
+      (powrot)="handlePowrotDoListy()">
+    </app-nowa-wiadomosc-form>
+  }
+
+</div>
