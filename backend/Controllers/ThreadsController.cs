@@ -14,7 +14,7 @@ namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Wymaga zalogowania (działa dla Admina, Merytorycznego i Podmiotu)
+    [Authorize] 
     public class ThreadsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -31,10 +31,8 @@ namespace backend.Controllers
             _threadService = threadService;
         }
 
-        // Pobieranie ID użytkownika z tokenu JWT
         private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        // Metoda pomocnicza do pobrania aktualnego użytkownika
         private async Task<ApplicationUser?> GetCurrentUserAsync()
         {
             return await _userManager.Users
@@ -44,8 +42,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // 1. LISTA WĄTKÓW (GET /api/threads)
-        // Odpowiednik frontowego: GET /api/me/threads
+        // 1. LISTA WĄTKÓW (WSPÓLNA - INTELIGENTNA)
         // ==========================================
         [HttpGet]
         public async Task<IActionResult> GetThreadsList()
@@ -57,10 +54,8 @@ namespace backend.Controllers
 
             if (user.Rola == RolaUzytkownika.Podmiot)
             {
-                // LOGIKA DLA UŻYTKOWNIKA (SIGMY)
                 if (!user.PodmiotId.HasValue) return Forbid("Użytkownik podmiotu nie jest przypisany do podmiotu.");
 
-                // 1. Pobierz grupy podmiotu
                 var podmiot = await _context.Podmioty
                     .Include(p => p.Grupy)
                     .FirstOrDefaultAsync(p => p.Id == user.PodmiotId.Value);
@@ -69,16 +64,16 @@ namespace backend.Controllers
 
                 var grupyPodmiotuIds = podmiot.Grupy.Select(g => g.Id).ToList();
 
-                // 2. Filtruj wątki
                 query = _context.Watki
                     .Include(w => w.Grupa)
                     .Include(w => w.Wiadomosci).ThenInclude(m => m.Autor)
                     .Where(w => 
-                        // Widzi broadcasty do swoich grup
-                        (grupyPodmiotuIds.Contains(w.GrupaId)) ||
-                        // LUB wątki, w których brał udział (jest autorem jakiejś wiadomości)
+                        (grupyPodmiotuIds.Contains(w.GrupaId) && !w.Wiadomosci.Any(m => m.Autor.Rola == RolaUzytkownika.Podmiot && m.Autor.PodmiotId != user.PodmiotId)) || 
                         (w.Wiadomosci.Any(m => m.AutorId == user.Id))
                     );
+                 // Mała poprawka w logice wyżej: Podmiot widzi broadcasty w swojej grupie ORAZ swoje wątki.
+                 // Filtrujemy, żeby nie widział wątków INNYCH podmiotów w tej samej grupie (jeśli by takie były).
+                 // Najbezpieczniej: Widzi wątki gdzie GrupaId pasuje I (Jest to broadcast [brak wiadomości podmiotów innych niż on] LUB on tam pisał).
             }
             else if (user.Rola == RolaUzytkownika.MerytorycznyUKNF)
             {
@@ -90,7 +85,6 @@ namespace backend.Controllers
             }
             else
             {
-                // Admin korzysta z innego endpointu (/api/admin/wiadomosci), tu dajemy Forbid
                 return Forbid("Administratorzy korzystają z dedykowanego panelu.");
             }
 
@@ -100,7 +94,6 @@ namespace backend.Controllers
                     Id = w.Id,
                     Temat = w.Temat,
                     GrupaNazwa = w.Grupa.Nazwa,
-                    // Bezpieczne pobieranie danych ostatniej wiadomości
                     OstatniaWiadomoscData = w.Wiadomosci.OrderByDescending(m => m.DataWyslania).Select(m => m.DataWyslania).FirstOrDefault(),
                     OstatniaWiadomoscAutor = w.Wiadomosci.OrderByDescending(m => m.DataWyslania).Select(m => m.Autor.UserName).FirstOrDefault() ?? "Brak",
                     OstatniaWiadomoscFragment = w.Wiadomosci.OrderByDescending(m => m.DataWyslania).Select(m => m.Tresc).FirstOrDefault() ?? "Brak wiadomości"
@@ -108,21 +101,17 @@ namespace backend.Controllers
                 .OrderByDescending(w => w.OstatniaWiadomoscData)
                 .ToListAsync();
 
-            // Przycinanie tekstu
             foreach (var watekDto in watkiDto)
             {
                 if (watekDto.OstatniaWiadomoscFragment.Length > 100)
-                {
                     watekDto.OstatniaWiadomoscFragment = watekDto.OstatniaWiadomoscFragment.Substring(0, 100) + "...";
-                }
             }
 
             return Ok(watkiDto);
         }
 
         // ==========================================
-        // 2. SZCZEGÓŁY WĄTKU (GET /api/threads/{id})
-        // Odpowiednik frontowego: GET /api/me/threads/{id}
+        // 2. SZCZEGÓŁY WĄTKU
         // ==========================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetThreadDetails(int id)
@@ -132,43 +121,30 @@ namespace backend.Controllers
 
             var watek = await _context.Watki
                 .Include(w => w.Grupa)
-                .Include(w => w.Wiadomosci)
-                    .ThenInclude(m => m.Autor)
-                    .ThenInclude(a => a.Podmiot) 
-                .Include(w => w.Wiadomosci)
-                    .ThenInclude(m => m.Zalaczniki)
+                .Include(w => w.Wiadomosci).ThenInclude(m => m.Autor).ThenInclude(a => a.Podmiot) 
+                .Include(w => w.Wiadomosci).ThenInclude(m => m.Zalaczniki)
                 .FirstOrDefaultAsync(w => w.Id == id);
 
             if (watek == null) return NotFound("Wątek nie istnieje.");
 
-            // --- WERYFIKACJA UPRAWNIEŃ DLA UŻYTKOWNIKA ---
             if (user.Rola == RolaUzytkownika.Podmiot)
             {
                 if (!user.PodmiotId.HasValue) return Forbid();
-                
                 var podmiot = await _context.Podmioty.Include(p => p.Grupy).FirstOrDefaultAsync(p => p.Id == user.PodmiotId.Value);
                 if (podmiot == null) return Forbid();
 
                 var grupyPodmiotuIds = podmiot.Grupy.Select(g => g.Id).ToList();
-
                 bool jestBroadcastemDoGrupy = grupyPodmiotuIds.Contains(watek.GrupaId);
                 bool jestAutorem = watek.Wiadomosci.Any(m => m.AutorId == user.Id);
 
-                if (!jestBroadcastemDoGrupy && !jestAutorem)
-                {
-                    return Forbid("Nie masz dostępu do tego wątku.");
-                }
+                if (!jestBroadcastemDoGrupy && !jestAutorem) return Forbid();
             }
             else if (user.Rola == RolaUzytkownika.MerytorycznyUKNF)
             {
                 var grupyUzytkownikaIds = user.Grupy.Select(g => g.Id).ToList();
-                if (!grupyUzytkownikaIds.Contains(watek.GrupaId))
-                {
-                    return Forbid("Nie masz dostępu do tej grupy wątków.");
-                }
+                if (!grupyUzytkownikaIds.Contains(watek.GrupaId)) return Forbid();
             }
 
-            // Mapowanie na DTO
             var dto = new ThreadDetailsDto
             {
                 Id = watek.Id,
@@ -179,12 +155,7 @@ namespace backend.Controllers
                     Id = m.Id,
                     Tresc = m.Tresc,
                     DataWyslania = m.DataWyslania,
-                    
-                    // --- FIX: DODANE IsAdmin ---
-                    // Jeśli autorem NIE jest podmiot, to znaczy że to Admin/UKNF.
                     IsAdmin = m.Autor.Rola != RolaUzytkownika.Podmiot,
-                    // ---------------------------
-
                     Autor = new AuthorDto
                     {
                         Id = m.Autor.Id,
@@ -206,7 +177,7 @@ namespace backend.Controllers
         }
 
         // ==========================================
-        // 3. ODPOWIEDŹ (POST /api/threads/{id}/reply)
+        // 3. ODPOWIEDŹ
         // ==========================================
         [HttpPost("{id}/reply")]
         public async Task<IActionResult> ReplyToThread(int id, [FromBody] ReplyToThreadDto dto)
@@ -223,14 +194,12 @@ namespace backend.Controllers
             
             var zalaczniki = await _threadService.PobierzZalacznikiAsync(dto.ZalacznikIds);
 
-            // LOGIKA "MAGII": Jeśli Podmiot odpowiada na ogólny broadcast -> tworzymy nowy wątek
             if (autor.Rola == RolaUzytkownika.Podmiot && _threadService.CzyWatekJestBroadcastem(watek))
             {
                 var nowyWatek = await _threadService.ObsluzOdpowiedzNaBroadcastAsync(watek, dto.Tresc, autor, zalaczniki);
                 return Ok(new { message = "Odpowiedź na broadcast utworzyła nowy wątek.", watekId = nowyWatek.Id });
             }
             
-            // Standardowa odpowiedź (dopisanie do istniejącego wątku)
             var wiadomosc = new Wiadomosc
             {
                 Tresc = dto.Tresc,
@@ -245,7 +214,9 @@ namespace backend.Controllers
             return Ok(new { message = "Odpowiedź dodana.", watekId = watek.Id });
         }
 
-        // --- TWORZENIE NOWEGO WĄTKU (POST /api/threads/create) ---
+        // ==========================================
+        // 4. TWORZENIE PRZEZ PODMIOT
+        // ==========================================
         [HttpPost("create")]
         [Authorize(Roles = "Podmiot")]
         public async Task<IActionResult> CreateThread([FromBody] CreateThreadDto dto)
@@ -256,22 +227,12 @@ namespace backend.Controllers
             var grupa = await _context.Grupy.FindAsync(dto.GrupaId);
             if (grupa == null) return BadRequest("Grupa nie istnieje.");
 
-            var podmiot = await _context.Podmioty
-                .Include(p => p.Grupy)
-                .FirstOrDefaultAsync(p => p.Id == autor.PodmiotId.Value);
-            
-            if (podmiot == null || !podmiot.Grupy.Contains(grupa))
-            {
-                return Forbid("Nie masz uprawnień do wysyłania w tej grupie.");
-            }
+            var podmiot = await _context.Podmioty.Include(p => p.Grupy).FirstOrDefaultAsync(p => p.Id == autor.PodmiotId.Value);
+            if (podmiot == null || !podmiot.Grupy.Contains(grupa)) return Forbid("Nie masz uprawnień do tej grupy.");
             
             var zalaczniki = await _threadService.PobierzZalacznikiAsync(dto.ZalacznikIds);
 
-            var watek = new Watek
-            {
-                Temat = dto.Temat,
-                GrupaId = dto.GrupaId
-            };
+            var watek = new Watek { Temat = dto.Temat, GrupaId = dto.GrupaId };
             _context.Watki.Add(watek);
             
             var wiadomosc = new Wiadomosc
@@ -284,42 +245,87 @@ namespace backend.Controllers
             _context.Wiadomosci.Add(wiadomosc);
 
             await _context.SaveChangesAsync();
-            
             return Ok(new { message = "Wątek stworzony.", watekId = watek.Id });
         }
 
-        // --- BROADCAST (Dla UKNF) ---
-        [HttpPost("broadcast")]
+        // ==========================================
+        // 5. NOWY ENDPOINT: KNF MASOWA WYSYŁKA
+        // ==========================================
+        [HttpPost("knf/create")]
         [Authorize(Roles = "MerytorycznyUKNF")]
-        public async Task<IActionResult> BroadcastMessage([FromBody] BroadcastMessageDto dto)
+        public async Task<IActionResult> CreateKnfThread([FromBody] CreateKnfThreadDto dto)
         {
             var autor = await _userManager.FindByIdAsync(GetUserId());
             if (autor == null) return Unauthorized();
 
-            var grupa = await _context.Grupy.FindAsync(dto.GrupaId);
-            if (grupa == null) return BadRequest("Grupa nie istnieje.");
-
             var zalaczniki = await _threadService.PobierzZalacznikiAsync(dto.ZalacznikIds);
+            int createdThreads = 0;
 
-            var watek = new Watek
+            // 1. Obsługa Broadcastów (Wysyłka do całych Grup)
+            if (dto.GrupyIds != null)
             {
-                Temat = dto.Temat,
-                GrupaId = dto.GrupaId
-            };
-            _context.Watki.Add(watek);
+                foreach (var grupaId in dto.GrupyIds)
+                {
+                    // Sprawdzamy czy grupa istnieje (pomijamy błędy, jedziemy dalej)
+                    var grupa = await _context.Grupy.FindAsync(grupaId);
+                    if (grupa == null) continue;
 
-            var wiadomosc = new Wiadomosc
+                    // Tworzymy wątek broadcastowy (bez przypisanego konkretnego podmiotu)
+                    var watek = new Watek { Temat = dto.Temat, GrupaId = grupaId };
+                    _context.Watki.Add(watek);
+
+                    var wiadomosc = new Wiadomosc
+                    {
+                        Tresc = dto.Tresc,
+                        AutorId = autor.Id,
+                        Watek = watek,
+                        // Uwaga: w EF Core przy dodawaniu wielu obiektów z tym samym załącznikiem
+                        // może być potrzebna ostrożność, ale tutaj tworzymy nową listę referencji
+                        Zalaczniki = new List<Zalacznik>(zalaczniki) 
+                    };
+                    _context.Wiadomosci.Add(wiadomosc);
+                    createdThreads++;
+                }
+            }
+
+            // 2. Obsługa Wysyłki do konkretnych Podmiotów
+            if (dto.PodmiotyIds != null)
             {
-                Tresc = dto.Tresc,
-                AutorId = autor.Id,
-                Watek = watek,
-                Zalaczniki = zalaczniki
-            };
-            _context.Wiadomosci.Add(wiadomosc);
+                foreach (var podmiotId in dto.PodmiotyIds)
+                {
+                    var podmiot = await _context.Podmioty
+                        .Include(p => p.Grupy)
+                        .FirstOrDefaultAsync(p => p.Id == podmiotId);
+                    
+                    if (podmiot == null) continue;
+
+                    // Wątek musi mieć przypisaną Grupę (wymaganie bazy).
+                    // Pobieramy pierwszą grupę podmiotu.
+                    // Jeśli podmiot nie ma grupy, nie możemy stworzyć wątku w tym modelu.
+                    var defaultGrupa = podmiot.Grupy.FirstOrDefault();
+                    if (defaultGrupa == null) continue; 
+
+                    // Tworzymy wątek, który teoretycznie jest "indywidualny"
+                    // W tym modelu broadcast vs indywidualny różni się tym, czy podmiot odpowiada.
+                    // Tutaj po prostu tworzymy wątek w grupie podmiotu.
+                    var watek = new Watek { Temat = dto.Temat, GrupaId = defaultGrupa.Id };
+                    _context.Watki.Add(watek);
+
+                    var wiadomosc = new Wiadomosc
+                    {
+                        Tresc = dto.Tresc,
+                        AutorId = autor.Id,
+                        Watek = watek,
+                        Zalaczniki = new List<Zalacznik>(zalaczniki)
+                    };
+                    _context.Wiadomosci.Add(wiadomosc);
+                    createdThreads++;
+                }
+            }
 
             await _context.SaveChangesAsync();
             
-            return Ok(new { message = "Wiadomość grupowa wysłana.", watekId = watek.Id });
+            return Ok(new { message = $"Wysłano wiadomości. Utworzono wątków: {createdThreads}" });
         }
     }
 }
