@@ -1,6 +1,11 @@
 <div class="form-container">
   <h2>{{ userDoEdycji ? 'Edytuj Użytkownika' : 'Dodaj Nowego Użytkownika' }}</h2>
   
+  <!-- Prosty loader na czas operacji -->
+  @if (isLoading()) {
+    <div class="loader">Trwa ładowanie...</div>
+  }
+
   <form [formGroup]="form" (ngSubmit)="zapisz()">
     
     <div class="form-group">
@@ -38,6 +43,41 @@
       }
       </div>
 
+    <!--
+      ===================================================================
+      NOWA SEKCJA: PRZYPISANIE DO GRUP (dla Pracownika UKNF)
+      ===================================================================
+    -->
+    @if (form.get('rola')?.value === 'Pracownik UKNF') {
+      <div class="form-group dynamic-field" formArrayName="grupy">
+        <label>Wybierz Grupy (dla Pracownika UKNF)</label>
+        
+        @if (listaWszystkichGrup().length === 0 && !isLoading()) {
+           <div class="error-message">
+             Brak grup do wyboru. Dodaj je w zakładce "Grupy".
+           </div>
+        } @else {
+          <div class="checkbox-list">
+            @for (grupa of listaWszystkichGrup(); track grupa.id) {
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [value]="grupa.id" 
+                  [checked]="isGrupaChecked(grupa.id)"
+                  (change)="onGrupaChange($event)">
+                {{ grupa.nazwa }}
+              </label>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!--
+      ===================================================================
+      ISTNIEJĄCA SEKCJA: PRZYPISANIE DO PODMIOTU (dla Podmiotu)
+      ===================================================================
+    -->
     @if (form.get('rola')?.value === 'Podmiot') {
       <div class="form-group dynamic-field">
         <label>Wybierz Podmiot (Firmę) *</label>
@@ -48,16 +88,18 @@
           }
         </select>
         @if (listaPodmiotow().length === 0) {
-           <div class="error-message">
+            <div class="error-message">
              Brak podmiotów do wyboru. Dodaj je w zakładce "Podmioty".
-           </div>
+            </div>
         }
       </div>
     }
 
     <div class="form-actions">
       <button type="button" (click)="anuluj()" class="button button-secondary">Anuluj</button>
-      <button type="submit" class="button button-primary" [disabled]="form.invalid">Zapisz</button>
+      <button type="submit" class="button button-primary" [disabled]="form.invalid || isLoading()">
+        {{ isLoading() ? 'Zapisywanie...' : 'Zapisz' }}
+      </button>
     </div>
 
   </form>

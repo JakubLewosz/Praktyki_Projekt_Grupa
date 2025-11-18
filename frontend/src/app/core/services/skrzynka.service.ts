@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs'; 
 import { environment } from '../../../environments/environment';
-import { Grupa } from '../models/user.model';
-import { Watek, WiadomoscWatek } from './admin.service';
+import { Grupa, Podmiot } from '../models/user.model';
+import { Watek, WiadomoscWatek } from './admin.service'; // Współdzielimy interfejsy
 
 @Injectable({
   providedIn: 'root'
@@ -12,45 +12,66 @@ export class SkrzynkaService {
 
   private http = inject(HttpClient);
   
-  // Ten adres jest poprawny dla wątków
+  // === POPRAWIONE ŚCIEŻKI API (z Twojego pliku) ===
   private threadsApiUrl = `${environment.apiUrl}/Threads`; 
-  
-  // === POPRAWKA ===
-  // Dodajemy poprawny adres dla endpointów '/api/me'
   private meApiUrl = `${environment.apiUrl}/me`; 
-  // (Usunęliśmy stary 'grupyApiUrl')
+  
+  // === DODANE ŚCIEŻKI (potrzebne dla roli KNF) ===
+  private adminApiUrl = `${environment.apiUrl}/Admin`; 
+  // Ten URL 'knfApiUrl' nie jest już potrzebny, bo backendowiec
+  // umieścił nowy endpoint w 'threadsApiUrl'
 
-  // === METODY, KTÓRE JUŻ MIELIŚMY ===
+  constructor() {}
 
-  /**
-   * 1. Pobieranie grup do formularza
-   * (POPRAWKA: Używa teraz 'meApiUrl' i woła GET /api/me/grupy)
-   */
+  // === Metody dla obu ról (używają /api/Threads) ===
+
+  getMojeWatki(): Observable<WiadomoscWatek[]> {
+    // Ten endpoint jest już "mądry" i filtruje po roli
+    return this.http.get<WiadomoscWatek[]>(this.threadsApiUrl); 
+  }
+
+  getWatekDetails(watekId: number): Observable<Watek> {
+    return this.http.get<Watek>(`${this.threadsApiUrl}/${watekId}`);
+  }
+
+  wyslijOdpowiedz(watekId: number, tresc: string): Observable<any> {
+    return this.http.post(`${this.threadsApiUrl}/${watekId}/reply`, { tresc });
+  }
+
+  // === Metody dla formularza "Nowa Wiadomość" (specyficzne dla roli) ===
+
+  // 1. Dla Użytkownika Podmiotu
   getGrupyDlaUzytkownika(): Observable<Grupa[]> {
     return this.http.get<Grupa[]>(`${this.meApiUrl}/grupy`); 
   }
 
-  // Tworzenie zupełnie nowego wątku
-  // (Ten jest poprawny, używa /api/Threads)
+  // 2. Dla Użytkownika Podmiotu
   createThread(temat: string, tresc: string, grupaId: number): Observable<any> {
-    const payload = { temat, tresc, grupaId, zalacznikIds: [] };
+    const payload = { temat, tresc, grupaId, zalacznikIds: [] }; 
     return this.http.post<any>(`${this.threadsApiUrl}/create`, payload);
   }
 
-  // === METODY DLA WĄTKÓW (Te są już poprawne) ===
+  //
+  // === METODY DLA KNF (Z AKTUALIZACJĄ) ===
+  //
 
-  // Pobiera listę wątków użytkownika (GET /api/Threads)
-  getMojeWatki(): Observable<WiadomoscWatek[]> {
-    return this.http.get<WiadomoscWatek[]>(this.threadsApiUrl); 
+  // 3. Dla Pracownika KNF
+  getWszystkieGrupy(): Observable<Grupa[]> {
+    return this.http.get<Grupa[]>(`${this.adminApiUrl}/grupy`);
+  }
+  
+  // 4. Dla Pracownika KNF
+  getWszystkiePodmioty(): Observable<Podmiot[]> {
+    return this.http.get<Podmiot[]>(`${this.adminApiUrl}/podmioty?status=active`);
   }
 
-  // Pobiera zawartość jednego wątku (GET /api/Threads/{id})
-  getWatekDetails(id: number): Observable<Watek> {
-    return this.http.get<Watek>(`${this.threadsApiUrl}/${id}`);
-  }
-
-  // Wysyła odpowiedź użytkownika (POST /api/Threads/{id}/reply)
-  wyslijOdpowiedz(watekId: number, tresc: string): Observable<any> {
-    return this.http.post(`${this.threadsApiUrl}/${watekId}/reply`, { tresc });
+  // 5. Dla Pracownika KNF
+  //
+  // --- ZMIANA JEST TUTAJ ---
+  //
+  createThreadKNF(temat: string, tresc: string, grupyIds: number[], podmiotyIds: number[]): Observable<any> {
+    // Używamy endpointu, który podał backendowiec: /api/Threads/knf/create
+    const payload = { temat, tresc, grupyIds, podmiotyIds };
+    return this.http.post(`${this.threadsApiUrl}/knf/create`, payload);
   }
 }

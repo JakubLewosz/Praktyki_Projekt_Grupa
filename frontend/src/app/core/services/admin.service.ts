@@ -5,35 +5,29 @@ import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { User, Podmiot, Grupa, LoginRequest, AuthResponse } from '../models/user.model';
 
-// === INTERFEJSY ZAKTUALIZOWANE POD BACKEND ===
-
-// Pasuje do AdminThreadListDto (zwracane przez GetAllThreads)
+// ... (Wszystkie interfejsy WiadomoscWatek, Wiadomosc, Watek... są OK) ...
 export interface WiadomoscWatek {
-  id: number; // Zmieniono na number
+  id: number;
   temat: string;
   nazwaNadawcy: string;
   nazwaGrupy: string;
   dataOstatniejWiadomosci: string; 
   czyNieprzeczytany: boolean;
 }
-
-// Pasuje do AdminMessageDto (część Watek)
 export interface Wiadomosc {
-  id: number; // Zmieniono na number
+  id: number;
   tresc: string;
   dataWyslania: string; 
-  autorNazwa: string; // Zmieniono z nazwaNadawcy
-  isAdmin: boolean;   // Zmieniono z czyAdmin
-  // zalaczniki: any[]; // Można dodać później
+  autorNazwa: string;
+  isAdmin: boolean; 
 }
-
-// Pasuje do AdminThreadDetailsDto (zwracane przez GetThreadDetails)
 export interface Watek {
-  id: number; // Zmieniono na number
+  id: number;
   temat: string;
   nazwaGrupy: string;
   wiadomosci: Wiadomosc[];
 }
+
 
 @Injectable({
   providedIn: 'root'
@@ -45,24 +39,21 @@ export class AdminService {
 
   constructor(private http: HttpClient) {}
 
-  // --- Logowanie ---
+  // ... (Metody login, getUsers, getPodmioty, getGrupy, createPodmiot, createGrupa... są OK) ...
+  
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.authUrl}/login`, credentials);
   }
 
-  // --- 1. METODY GET (Pobieranie) ---
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`);
   }
 
   getPodmioty(status: 'all' | 'active' = 'active'): Observable<Podmiot[]> {
-    
     let params = new HttpParams();
-    
     if (status === 'all') {
       params = params.set('status', 'all');
     }
-
     return this.http.get<Podmiot[]>(`${this.apiUrl}/podmioty`, { params });
   }
 
@@ -70,7 +61,6 @@ export class AdminService {
     return this.http.get<Grupa[]>(`${this.apiUrl}/grupy`);
   }
 
-  // --- 2. METODY POST (Tworzenie) ---
   createPodmiot(podmiot: { nazwa: string, nip: string, regon: string }): Observable<Podmiot> {
     return this.http.post<Podmiot>(`${this.apiUrl}/podmioty`, podmiot);
   }
@@ -78,49 +68,41 @@ export class AdminService {
   createGrupa(nazwa: string): Observable<Grupa> {
     return this.http.post<Grupa>(`${this.apiUrl}/grupy`, { nazwa });
   }
-
+  
+  // --- Metody Usera (Update, Disable, Enable...) są OK ---
+  
   createUser(dane: any): Observable<User> {
+    // Backend potwierdził, że ten endpoint przyjmuje teraz 'grupyIds'
     return this.http.post<User>(`${this.apiUrl}/users`, dane);
   }
 
-  // --- 3. METODY PUT/POST (Aktualizacja i Status) ---
   updateUser(id: string, dane: any): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, dane);
   }
 
-  //
-  // --- POPRAWKA: Wracamy do PUT (zgodnie z info od backendowca) ---
-  //
   disableUser(id: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/users/${id}/disable`, {});
   }
 
-  //
-  // --- POPRAWKA: Wracamy do PUT (zgodnie z info od backendowca) ---
-  //
   enableUser(id: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/users/${id}/enable`, {});
   }
 
+  // --- Metody Podmiotu (Update, Disable, Enable...) są OK ---
+  
   updatePodmiot(id: number, dane: { nazwa: string, nip: string, regon: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/podmioty/${id}`, dane);
   }
 
-  //
-  // --- POPRAWKA: Zmieniam na PUT (zgodnie z Twoim starym Swaggerem) ---
-  //
   disablePodmiot(id: number): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/disable`, {});
   }
 
-  //
-  // --- POPRAWKA: Zmieniam na PUT (zgodnie z Twoim starym Swaggerem) ---
-  //
   enablePodmiot(id: number): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/podmioty/${id}/enable`, {});
   }
 
-  // --- ZARZĄDZANIE CZŁONKAMI GRUPY ---
+  // --- Zarządzanie Grupami (Podmioty) jest OK ---
 
   getGrupaById(id: number): Observable<Grupa> {
     return this.http.get<Grupa>(`${this.apiUrl}/grupy/${id}`);
@@ -134,22 +116,37 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/grupy/${grupaId}/podmioty/${podmiotId}`);
   }
 
-  // === 5. SYSTEM WIADOMOŚCI (POPRAWIONY) ===
+  //
+  // --- ZAKTUALIZOWANE METODY (Usunięto symulację) ---
+  //
+
+  /**
+   * Pobiera listę grup, do których przypisany jest dany użytkownik (Pracownik KNF)
+   */
+  getGrupyDlaUzytkownika(userId: string): Observable<Grupa[]> {
+    // To jest już prawdziwe wywołanie API, które zrobił backendowiec
+    return this.http.get<Grupa[]>(`${this.apiUrl}/users/${userId}/grupy`);
+  }
+
+  /**
+   * Aktualizuje listę grup, do których przypisany jest użytkownik
+   */
+  updateGrupyDlaUzytkownika(userId: string, grupyIds: number[]): Observable<any> {
+    // To jest już prawdziwe wywołanie API, które zrobił backendowiec
+    return this.http.put(`${this.apiUrl}/users/${userId}/grupy`, { grupyIds });
+  }
+
+  // --- SYSTEM WIADOMOŚCI (bez zmian) ---
   
   getWiadomosci(): Observable<WiadomoscWatek[]> {
-    console.log('API: Pobieranie listy wiadomości dla admina.');
     return this.http.get<WiadomoscWatek[]>(`${this.apiUrl}/wiadomosci`);
   }
 
-  // Zmieniono 'id: string' na 'id: number'
   getWatek(id: number): Observable<Watek> {
-    console.log(`API: Pobieranie wątku o ID: ${id}`);
     return this.http.get<Watek>(`${this.apiUrl}/wiadomosci/${id}`);
   }
 
-  // Zmieniono 'watekId: string' na 'watekId: number'
   wyslijOdpowiedzAdmina(watekId: number, tresc: string): Observable<any> {
-    console.log(`API: Wysyłanie odpowiedzi do wątku: ${watekId}`);
     return this.http.post(`${this.apiUrl}/wiadomosci/${watekId}/odpowiedz`, { tresc });
   }
 }

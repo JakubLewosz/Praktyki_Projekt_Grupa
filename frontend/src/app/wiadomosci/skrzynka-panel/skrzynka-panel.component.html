@@ -3,7 +3,8 @@
   <header class="skrzynka-header">
     <div class="logo-container">
       <h2>Twoja Skrzynka</h2>
-      <span>(Podmiot)</span>
+      <!-- Pokazujemy rolę dla debugowania -->
+      <span>({{ rolaUzytkownika() }})</span>
     </div>
     <div class="actions-container">
       @if (widok() === 'list') {
@@ -26,6 +27,11 @@
       <p class="loading-text">Ładowanie...</p>
     }
 
+    <!--
+      ============================================
+      WIDOK: LISTA WĄTKÓW (bez zmian)
+      ============================================
+    -->
     @if (widok() === 'list' && !isLoading()) {
       <div class="lista-watkow-container">
         @if (watki().length === 0) {
@@ -65,8 +71,14 @@
       </div>
     }
 
+    <!--
+      ============================================
+      WIDOK: Czat (bez zmian)
+      ============================================
+    -->
     @if (widok() === 'watek' && aktywnyWatek() && !isLoading()) {
       <div class="watek-container">
+        <!-- ... (cała zawartość czatu jest taka sama jak u Ciebie) ... -->
         <div class="watek-header-info">
           <h3>{{ aktywnyWatek()?.temat }}</h3>
           <span>Wątek z grupy: <strong>{{ aktywnyWatek()?.nazwaGrupy }}</strong></span>
@@ -104,21 +116,80 @@
       </div>
     }
 
+    <!--
+      ============================================
+      WIDOK: NOWA WIADOMOŚĆ (Całkowicie przebudowany)
+      ============================================
+    -->
     @if (widok() === 'form' && !isLoading()) {
       <div class="form-container">
         <h3>Tworzenie nowej wiadomości</h3>
+        
         <form [formGroup]="nowyWatekForm" (ngSubmit)="stworzNowyWatek()" class="nowy-watek-form">
-          
-          <div class="form-group">
-            <label for="grupaId">Wybierz Grupę (Odbiorcę):</label>
-            <select id="grupaId" formControlName="grupaId" class="form-input">
-              <option [ngValue]="null" disabled>Wybierz grupę...</option>
-              @for (grupa of grupy(); track grupa.id) {
-                <option [ngValue]="grupa.id">{{ grupa.nazwa }}</option>
-              }
-            </select>
-          </div>
 
+          <!-- 
+            ============================================
+            FORMULARZ DLA UŻYTKOWNIKA "PODMIOT"
+            ============================================
+          -->
+          @if (rolaUzytkownika() === 'Podmiot') {
+            <div class="form-group">
+              <label for="grupaId">Wybierz Grupę (Odbiorcę):</label>
+              <select id="grupaId" formControlName="grupaId" class="form-input">
+                <option [ngValue]="null" disabled>Wybierz grupę (departament)...</option>
+                @for (grupa of grupy(); track grupa.id) {
+                  <option [ngValue]="grupa.id">{{ grupa.nazwa }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <!-- 
+            ============================================
+            FORMULARZ DLA UŻYTKOWNIKA "KNF"
+            ============================================
+          -->
+          @if (rolaUzytkownika() === 'KNF') {
+            <div class="knf-form-grid">
+              <!-- SEKCJA ADRESATÓW (GRUPY) -->
+              <div class="form-group address-box" formArrayName="grupyIds">
+                <label>Wybierz Grupy (Adresaci)</label>
+                <div class="checkbox-list">
+                  @for (grupa of grupy(); track grupa.id) {
+                    <label class="checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        [value]="grupa.id" 
+                        (change)="onGrupaKNFChange($event)">
+                      {{ grupa.nazwa }}
+                    </label>
+                  }
+                </div>
+              </div>
+              
+              <!-- SEKCJA ADRESATÓW (PODMIOTY) -->
+              <div class="form-group address-box" formArrayName="podmiotyIds">
+                <label>Wybierz Podmioty (Adresaci)</label>
+                <div class="checkbox-list">
+                  @for (podmiot of listaPodmiotow(); track podmiot.id) {
+                    <label class="checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        [value]="podmiot.id" 
+                        (change)="onPodmiotKNFChange($event)">
+                      {{ podmiot.nazwa }}
+                    </label>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- 
+            ============================================
+            POLA WSPÓLNE (TEMAT I TREŚĆ)
+            ============================================
+          -->
           <div class="form-group">
             <label for="temat">Temat:</label>
             <input id="temat" type="text" formControlName="temat" class="form-input" placeholder="Wpisz temat...">
