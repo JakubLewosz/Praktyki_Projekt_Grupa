@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace backend.Controllers
 {
@@ -28,9 +29,11 @@ namespace backend.Controllers
         // SEKCJA 1: ZARZĄDZANIE UŻYTKOWNIKAMI
         // ==========================================
 
+        // ZMODYFIKOWANA METODA CREATE
         [HttpPost("users")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto dto)
         {
+            // 1. Walidacja dla Podmiotu
             if (dto.Rola == RolaUzytkownika.Podmiot && !dto.PodmiotId.HasValue)
             {
                 return BadRequest(new { message = "PodmiotId jest wymagany dla użytkownika typu Podmiot." });
@@ -48,6 +51,7 @@ namespace backend.Controllers
                 }
             }
             
+            // 2. Tworzenie Użytkownika
             var newUser = new ApplicationUser
             {
                 UserName = dto.Username,
@@ -61,6 +65,22 @@ namespace backend.Controllers
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
+            }
+
+            // 3. NOWOŚĆ: Przypisywanie grup przy tworzeniu (dla Merytorycznego)
+            if (dto.Rola == RolaUzytkownika.MerytorycznyUKNF && dto.GrupyIds != null && dto.GrupyIds.Any())
+            {
+                var grupy = await _context.Grupy
+                    .Where(g => dto.GrupyIds.Contains(g.Id))
+                    .ToListAsync();
+
+                foreach (var grupa in grupy)
+                {
+                    newUser.Grupy.Add(grupa);
+                }
+                
+                // Zapisujemy powiązania
+                await _userManager.UpdateAsync(newUser);
             }
 
             return Ok(new { message = "Użytkownik stworzony pomyślnie.", userId = newUser.Id });
@@ -99,6 +119,73 @@ namespace backend.Controllers
 
             return Ok(new { message = "Użytkownik zaktualizowany." });
         }
+
+        // --- NOWE ENDPOINTY DLA GRUP UŻYTKOWNIKA ---
+
+        // 1. Pobierz grupy przypisane do użytkownika
+        [HttpGet("users/{id}/grupy")]
+        public async Task<IActionResult> GetUserGroups(string id)
+        {
+            var user = await _userManager.Users
+                .Include(u => u.Grupy)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null) return NotFound("Użytkownik nie znaleziony.");
+
+            var grupyDto = user.Grupy.Select(g => new 
+            {
+                g.Id,
+                g.Nazwa
+            }).ToList();
+
+            return Ok(grupyDto);
+        }
+
+        // 2. Aktualizuj przypisanie grup (Zastąp stare nowymi)
+        [HttpPut("users/{id}/grupy")]
+        public async Task<IActionResult> UpdateUserGroups(string id, [FromBody] UpdateUserGroupsDto dto)
+        {
+            // Pobieramy użytkownika wraz z jego obecnymi grupami (to ważne dla .Clear())
+            var user = await _userManager.Users
+                .Include(u => u.Grupy)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null) return NotFound("Użytkownik nie znaleziony.");
+
+            // Tylko pracownik merytoryczny powinien mieć grupy (logika biznesowa)
+            // Ale technicznie system pozwala każdemu. Możemy tu dodać walidację, jeśli chcesz.
+            if (user.Rola != RolaUzytkownika.MerytorycznyUKNF)
+            {
+                 // Opcjonalnie: return BadRequest("Tylko pracownik merytoryczny może należeć do grup.");
+                 // Na razie pozwalamy, by zachować elastyczność.
+            }
+
+            // 1. Wyczyść obecne przypisania
+            user.Grupy.Clear();
+
+            // 2. Pobierz nowe grupy z bazy
+            if (dto.GrupyIds != null && dto.GrupyIds.Any())
+            {
+                var noweGrupy = await _context.Grupy
+                    .Where(g => dto.GrupyIds.Contains(g.Id))
+                    .ToListAsync();
+
+                // 3. Dodaj nowe grupy
+                foreach (var grupa in noweGrupy)
+                {
+                    user.Grupy.Add(grupa);
+                }
+            }
+
+            // 4. Zapisz zmiany
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded) return BadRequest(result.Errors);
+
+            return Ok(new { message = "Grupy użytkownika zaktualizowane." });
+        }
+        // --- KONIEC NOWYCH ENDPOINTÓW ---
+
 
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers()
@@ -188,7 +275,6 @@ namespace backend.Controllers
             return Ok(await query.ToListAsync());
         }
 
-        // --- KASKADOWE BLOKOWANIE (PODMIOT + PRACOWNICY) ---
         [HttpPut("podmioty/{id}/disable")]
         public async Task<IActionResult> DisablePodmiot(int id)
         {
@@ -213,7 +299,6 @@ namespace backend.Controllers
             return Ok(podmiot);
         }
 
-        // --- POJEDYNCZE ODBLOKOWANIE (TYLKO PODMIOT) ---
         [HttpPut("podmioty/{id}/enable")]
         public async Task<IActionResult> EnablePodmiot(int id)
         {
@@ -223,8 +308,6 @@ namespace backend.Controllers
             // 1. Odblokuj TYLKO podmiot
             podmiot.IsActive = true;
             
-            // 2. Użytkownicy pozostają zablokowani (zgodnie z wymaganiem)
-
             await _context.SaveChangesAsync();
             
             return Ok(podmiot);
@@ -329,6 +412,8 @@ namespace backend.Controllers
             return NoContent();
         }
 
+        // Ten endpoint (pojedyncze dodawanie) zostawiam, ale teraz masz już
+        // lepszą metodę PUT UpdateUserGroups do masowej edycji.
         [HttpPost("assign-user-to-grupa")]
         public async Task<IActionResult> AssignGrupaToUser([FromBody] AssignGrupaToUserDto dto)
         {
